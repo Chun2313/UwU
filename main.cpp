@@ -246,6 +246,13 @@ int main() {
                         clearingRows[clearingRowCount++] = i;
                 }
                     if (clearingRowCount > 0) {
+                        int ps = score;
+                        int ns[] = {0, 100, 200, 300, 400};
+                        for (int m = 0; m < 5; m++) {
+                            int t = ((ps + clearingRowCount * 100) / 500) * 500 + ns[m];
+                            if (t > 0 && ps < t && ps + clearingRowCount * 100 >= t)
+                                PlaySound(milestoneSounds[m]);
+                        }
                         isClearing = true;
                         clearTimer = 1.0f;
                         spawnParticles();
@@ -278,13 +285,6 @@ int main() {
                 scorePopupTimer = 1.5f;
                 if (score > 0 && score / 500 > (score - clearingRowCount * 100) / 500)
                     acePopupTimer = 2.0f;
-                int prevScore = score - clearingRowCount * 100;
-                int ms[] = {0, 100, 200, 300, 400};
-                for (int m = 0; m < 5; m++) {
-                    int target = (score / 500) * 500 + ms[m];
-                    if (target > 0 && prevScore < target && score >= target)
-                        PlaySound(milestoneSounds[m]);
-                }
                 isClearing = false;
                 posX = 5;
                 posY = 0;
@@ -313,11 +313,18 @@ int main() {
                         if (filledCount == W - 2)
                             clearingRows[clearingRowCount++] = i;
                     }
-                    if (clearingRowCount > 0) {
-                        isClearing = true;
-                        clearTimer = 1.0f;
-                        spawnParticles();
-                    } else {
+                     if (clearingRowCount > 0) {
+                         int ps = score;
+                         int ns[] = {0, 100, 200, 300, 400};
+                         for (int m = 0; m < 5; m++) {
+                             int t = ((ps + clearingRowCount * 100) / 500) * 500 + ns[m];
+                             if (t > 0 && ps < t && ps + clearingRowCount * 100 >= t)
+                                 PlaySound(milestoneSounds[m]);
+                         }
+                         isClearing = true;
+                         clearTimer = 1.0f;
+                         spawnParticles();
+                     } else {
                         posX = 5;
                         posY = 0;
                         blockType = nextBlockType;
