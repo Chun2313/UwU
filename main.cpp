@@ -216,7 +216,7 @@ int main() {
                 }
             }
         } else {
-            float speed = IsKeyDown(KEY_X) ? moveSpeed / 4 : moveSpeed;
+            float speed = IsKeyDown(KEY_X) ? moveSpeed / 2 : moveSpeed;
             dropTimer += dt;
             if (dropTimer >= speed) {
                 if (canMove(0, 1))
