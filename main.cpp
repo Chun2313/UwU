@@ -85,25 +85,6 @@ void block2Board() {
                 board[posY + i][posX + j] = blocks[blockType][i][j];
 }
 
-int removeLine() {
-    int linesCleared = 0;
-    for (int i = H - 2; i > 0; i--) {
-        int filledCount = 0;
-        for (int j = 1; j < W - 1; j++)
-            if (board[i][j] != ' ')
-                filledCount++;
-
-        if (filledCount == W - 2) {
-            for (int ii = i; ii > 0; ii--)
-                for (int jj = 1; jj < W - 1; jj++)
-                    board[ii][jj] = board[ii - 1][jj];
-            i++;
-            linesCleared++;
-        }
-    }
-    return linesCleared;
-}
-
 void rotateBlock() {
     char rotated[4][4];
     for (int i = 0; i < 4; i++)
