@@ -185,6 +185,13 @@ void rotateBlock() {
 
 int main() {
     InitWindow(screenWidth, screenHeight, "Tetris Raylib - Square GUI");
+    InitAudioDevice();
+    Sound milestoneSounds[5];
+    milestoneSounds[0] = LoadSound("audio/500diem_A01_R.wav");
+    milestoneSounds[1] = LoadSound("audio/100diem_A01_R.wav");
+    milestoneSounds[2] = LoadSound("audio/200diem_A01_R.wav");
+    milestoneSounds[3] = LoadSound("audio/300diem_A01_R.wav");
+    milestoneSounds[4] = LoadSound("audio/400diem_A01_R.wav");
     SetTargetFPS(60);
     srand(time(0) + clock());
 
@@ -238,11 +245,18 @@ int main() {
                     if (filledCount == W - 2)
                         clearingRows[clearingRowCount++] = i;
                 }
-                if (clearingRowCount > 0) {
-                    isClearing = true;
-                    clearTimer = 1.0f;
-                    spawnParticles();
-                } else {
+                    if (clearingRowCount > 0) {
+                        int ps = score;
+                        int ns[] = {0, 100, 200, 300, 400};
+                        for (int m = 0; m < 5; m++) {
+                            int t = ((ps + clearingRowCount * 100) / 500) * 500 + ns[m];
+                            if (t > 0 && ps < t && ps + clearingRowCount * 100 >= t)
+                                PlaySound(milestoneSounds[m]);
+                        }
+                        isClearing = true;
+                        clearTimer = 1.0f;
+                        spawnParticles();
+                    } else {
                     posX = 5;
                     posY = 0;
                     blockType = nextBlockType;
@@ -254,6 +268,7 @@ int main() {
                         gameTimer = 0;
                     }
                 }
+                dropTimer = 0;
             }
         }
 
@@ -265,11 +280,10 @@ int main() {
                     for (int r = clearingRows[k]; r > 0; r--)
                         for (int j = 1; j < W - 1; j++)
                             board[r][j] = board[r - 1][j];
-                int prevScore = score;
                 score += clearingRowCount * 100;
                 scorePopupValue = clearingRowCount * 100;
                 scorePopupTimer = 1.5f;
-                if (score > 0 && score / 500 > prevScore / 500)
+                if (score > 0 && score / 500 > (score - clearingRowCount * 100) / 500)
                     acePopupTimer = 2.0f;
                 isClearing = false;
                 posX = 5;
@@ -284,9 +298,8 @@ int main() {
                 }
             }
         } else {
-            float speed = moveSpeed;
             dropTimer += dt;
-            if (dropTimer >= speed) {
+            if (dropTimer >= moveSpeed) {
                 if (canMove(0, 1))
                     posY++;
                 else {
@@ -300,11 +313,18 @@ int main() {
                         if (filledCount == W - 2)
                             clearingRows[clearingRowCount++] = i;
                     }
-                    if (clearingRowCount > 0) {
-                        isClearing = true;
-                        clearTimer = 1.0f;
-                        spawnParticles();
-                    } else {
+                     if (clearingRowCount > 0) {
+                         int ps = score;
+                         int ns[] = {0, 100, 200, 300, 400};
+                         for (int m = 0; m < 5; m++) {
+                             int t = ((ps + clearingRowCount * 100) / 500) * 500 + ns[m];
+                             if (t > 0 && ps < t && ps + clearingRowCount * 100 >= t)
+                                 PlaySound(milestoneSounds[m]);
+                         }
+                         isClearing = true;
+                         clearTimer = 1.0f;
+                         spawnParticles();
+                     } else {
                         posX = 5;
                         posY = 0;
                         blockType = nextBlockType;
@@ -519,6 +539,9 @@ int main() {
         EndDrawing();
     }
 
+    for (int i = 0; i < 5; i++)
+        UnloadSound(milestoneSounds[i]);
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }
