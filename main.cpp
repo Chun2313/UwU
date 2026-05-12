@@ -61,6 +61,9 @@ void spawnBlock() {
             currentBlock[i][j] = blocks[blockType][i][j];
 }
 
+int scorePopupValue = 0;
+float scorePopupTimer = 0;
+
 float pX[MAX_PARTICLES], pY[MAX_PARTICLES];
 float pVX[MAX_PARTICLES], pVY[MAX_PARTICLES];
 float pLife[MAX_PARTICLES];
@@ -187,6 +190,7 @@ int main() {
 
         float dt = GetFrameTime();
         gameTimer += dt;
+        if (scorePopupTimer > 0) scorePopupTimer -= dt;
 
         if (isClearing) {
             clearTimer -= dt;
@@ -197,6 +201,8 @@ int main() {
                         for (int j = 1; j < W - 1; j++)
                             board[r][j] = board[r - 1][j];
                 score += clearingRowCount * 100;
+                scorePopupValue = clearingRowCount * 100;
+                scorePopupTimer = 1.5f;
                 isClearing = false;
                 posX = 5;
                 posY = 0;
@@ -321,8 +327,7 @@ int main() {
             float alpha = progress < 0.2f ? progress / 0.2f : 1.0f;
             if (progress > 0.7f) alpha = 1.0f - (progress - 0.7f) / 0.3f;
             int fontSize = 40 + (int)(progress * 60);
-            const char* labels[] = {"CLEAR!", "AWESOME!", "PERFECT!"};
-            const char* label = labels[clearingRowCount > 1 ? (clearingRowCount > 2 ? 2 : 1) : 0];
+            const char* label = TextFormat("+%d", clearingRowCount * 100);
             int tw = MeasureText(label, fontSize);
             int cx = (W * cellSize - tw) / 2;
             int cy = (H * cellSize - fontSize) / 2;
@@ -341,6 +346,14 @@ int main() {
 
         DrawText("SCORE", sidebarX, 100, 20, LIGHTGRAY);
         DrawText(TextFormat("%06d", score), sidebarX, 125, 30, YELLOW);
+
+        if (scorePopupTimer > 0) {
+            float a = scorePopupTimer / 1.5f;
+            int offsetY = (int)((1.0f - a) * 40);
+            Color c = YELLOW;
+            c.a = (unsigned char)(a * 255);
+            DrawText(TextFormat("+%d", scorePopupValue), sidebarX, 125 - offsetY, 25, c);
+        }
 
         DrawText("TIME", sidebarX, 200, 20, LIGHTGRAY);
         DrawText(TextFormat("%02d:%02d", (int)gameTimer / 60, (int)gameTimer % 60), sidebarX, 225, 30, GREEN);
