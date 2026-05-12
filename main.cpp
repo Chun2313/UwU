@@ -467,6 +467,20 @@ int main() {
             }
         }
 
+        if (acePopupTimer > 0) {
+            float progress = 1.0f - acePopupTimer / 2.0f;
+            float alpha = progress < 0.15f ? progress / 0.15f : 1.0f;
+            if (progress > 0.8f) alpha = 1.0f - (progress - 0.8f) / 0.2f;
+            int fontSize = 50 + (int)(progress * 80);
+            const char* aceText = "ACE";
+            int tw = MeasureText(aceText, fontSize);
+            int cx = (W * cellSize - tw) / 2;
+            int cy = (H * cellSize - fontSize) / 2;
+            Color ac = ColorFromHSV(progress * 720, 1, 1);
+            ac.a = (unsigned char)(alpha * 255);
+            DrawText(aceText, cx + (int)shakeX, cy + (int)shakeY - 30, fontSize, ac);
+        }
+
         int sidebarX = W * cellSize + 20;
         DrawText("TETRIS", sidebarX, 20, 40, RAYWHITE);
 
@@ -479,15 +493,6 @@ int main() {
             Color c = YELLOW;
             c.a = (unsigned char)(a * 255);
             DrawText(TextFormat("+%d", scorePopupValue), sidebarX, 125 - offsetY, 25, c);
-        }
-
-        if (acePopupTimer > 0) {
-            float a = acePopupTimer / 2.0f;
-            int offsetY = (int)((1.0f - a) * 50);
-            Color ac = GOLD;
-            ac.a = (unsigned char)(a * 255);
-            int aceWidth = MeasureText("ACE", 40);
-            DrawText("ACE", sidebarX + 120 - aceWidth, 120 - offsetY, 40, ac);
         }
 
         DrawText("TIME", sidebarX, 200, 20, LIGHTGRAY);
