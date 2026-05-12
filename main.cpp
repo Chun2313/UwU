@@ -43,6 +43,10 @@ char blocks[][4][4] = {{{' ', 'I', ' ', ' '},
 int posX = 4, posY = 0, blockType = 1;
 float timer = 0;
 float moveSpeed = 0.5f;
+bool isClearing = false;
+float clearTimer = 0;
+int clearingRows[4];
+int clearingRowCount = 0;
 
 void initBoard() {
     for (int i = 0; i < H; i++)
@@ -76,22 +80,6 @@ void block2Board() {
                 board[posY + i][posX + j] = blocks[blockType][i][j];
 }
 
-void removeLine() {
-    for (int i = H - 2; i > 0; i--) {
-        int filledCount = 0;
-        for (int j = 1; j < W - 1; j++)
-            if (board[i][j] != ' ')
-                filledCount++;
-
-        if (filledCount == W - 2) {
-            for (int ii = i; ii > 0; ii--)
-                for (int jj = 1; jj < W - 1; jj++)
-                    board[ii][jj] = board[ii - 1][jj];
-            i++;
-        }
-    }
-}
-
 int main() {
     InitWindow(W * cellSize, H * cellSize, "Tetris Raylib - MacOS");
     SetTargetFPS(60);
@@ -101,40 +89,81 @@ int main() {
     blockType = rand() % 7;
 
     while (!WindowShouldClose()) {
-        if (IsKeyPressed(KEY_A) && canMove(-1, 0))
-            posX--;
-        if (IsKeyPressed(KEY_D) && canMove(1, 0))
-            posX++;
-        if (IsKeyPressed(KEY_X) && canMove(0, 1))
-            posY++;
-
-        timer += GetFrameTime();
-        if (timer >= moveSpeed) {
-            if (canMove(0, 1))
+        if (!isClearing) {
+            if (IsKeyPressed(KEY_A) && canMove(-1, 0))
+                posX--;
+            if (IsKeyPressed(KEY_D) && canMove(1, 0))
+                posX++;
+            if (IsKeyPressed(KEY_X) && canMove(0, 1))
                 posY++;
-            else {
-                block2Board();
-                removeLine();
+        }
+
+        float dt = GetFrameTime();
+
+        if (isClearing) {
+            clearTimer -= dt;
+            if (clearTimer <= 0) {
+                for (int k = 0; k < clearingRowCount; k++)
+                    for (int r = clearingRows[k]; r > 0; r--)
+                        for (int j = 1; j < W - 1; j++)
+                            board[r][j] = board[r - 1][j];
+                isClearing = false;
                 posX = 5;
                 posY = 0;
                 blockType = rand() % 7;
                 if (!canMove(0, 0))
                     initBoard();
             }
-            timer = 0;
+        } else {
+            timer += dt;
+            if (timer >= moveSpeed) {
+                if (canMove(0, 1))
+                    posY++;
+                else {
+                    block2Board();
+                    clearingRowCount = 0;
+                    for (int i = H - 2; i > 0; i--) {
+                        int filledCount = 0;
+                        for (int j = 1; j < W - 1; j++)
+                            if (board[i][j] != ' ')
+                                filledCount++;
+                        if (filledCount == W - 2)
+                            clearingRows[clearingRowCount++] = i;
+                    }
+                    if (clearingRowCount > 0) {
+                        isClearing = true;
+                        clearTimer = 1.0f;
+                    } else {
+                        posX = 5;
+                        posY = 0;
+                        blockType = rand() % 7;
+                        if (!canMove(0, 0))
+                            initBoard();
+                    }
+                }
+                timer = 0;
+            }
         }
 
         BeginDrawing();
         ClearBackground(BLACK);
+
+        Color flashColors[] = {WHITE, YELLOW, ORANGE, PINK};
+        int flashIdx = isClearing ? (int)(clearTimer * 20) % 4 : 0;
 
         for (int i = 0; i < H; i++) {
             for (int j = 0; j < W; j++) {
                 if (board[i][j] == '#')
                     DrawRectangle(j * cellSize, i * cellSize, cellSize - 1,
                                   cellSize - 1, DARKGRAY);
-                else if (board[i][j] != ' ')
+                else if (board[i][j] != ' ') {
+                    bool isFlashRow = false;
+                    for (int k = 0; k < clearingRowCount; k++)
+                        if (clearingRows[k] == i) { isFlashRow = true; break; }
                     DrawRectangle(j * cellSize, i * cellSize, cellSize - 1,
-                                  cellSize - 1, BLUE);
+                                  cellSize - 1,
+                                  isFlashRow && isClearing ? flashColors[flashIdx] : BLUE);
+                }
             }
         }
 
@@ -151,6 +180,9 @@ int main() {
             DrawLine(0, i * cellSize, W * cellSize, i * cellSize, DARKGRAY);
         for (int j = 0; j < W; j++)
             DrawLine(j * cellSize, 0, j * cellSize, H * cellSize, DARKGRAY);
+
+        if (isClearing)
+            DrawRectangle(0, 0, W * cellSize, H * cellSize, Fade(WHITE, 0.15f));
 
         EndDrawing();
     }
