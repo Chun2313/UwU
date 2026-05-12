@@ -54,6 +54,9 @@ float clearTimer = 0;
 int clearingRows[4];
 int clearingRowCount = 0;
 
+int scorePopupValue = 0;
+float scorePopupTimer = 0;
+
 float pX[MAX_PARTICLES], pY[MAX_PARTICLES];
 float pVX[MAX_PARTICLES], pVY[MAX_PARTICLES];
 float pLife[MAX_PARTICLES];
@@ -178,6 +181,7 @@ int main() {
 
         float dt = GetFrameTime();
         gameTimer += dt;
+        if (scorePopupTimer > 0) scorePopupTimer -= dt;
 
         if (isClearing) {
             clearTimer -= dt;
@@ -188,6 +192,8 @@ int main() {
                         for (int j = 1; j < W - 1; j++)
                             board[r][j] = board[r - 1][j];
                 score += clearingRowCount * 100;
+                scorePopupValue = clearingRowCount * 100;
+                scorePopupTimer = 1.5f;
                 isClearing = false;
                 posX = 5;
                 posY = 0;
@@ -329,6 +335,14 @@ int main() {
 
         DrawText("SCORE", sidebarX, 100, 20, LIGHTGRAY);
         DrawText(TextFormat("%06d", score), sidebarX, 125, 30, YELLOW);
+
+        if (scorePopupTimer > 0) {
+            float a = scorePopupTimer / 1.5f;
+            int offsetY = (int)((1.0f - a) * 40);
+            Color c = YELLOW;
+            c.a = (unsigned char)(a * 255);
+            DrawText(TextFormat("+%d", scorePopupValue), sidebarX, 125 - offsetY, 25, c);
+        }
 
         DrawText("TIME", sidebarX, 200, 20, LIGHTGRAY);
         DrawText(TextFormat("%02d:%02d", (int)gameTimer / 60, (int)gameTimer % 60), sidebarX, 225, 30, GREEN);
