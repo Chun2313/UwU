@@ -197,7 +197,9 @@ int main() {
     while (!WindowShouldClose()) {
         if (!isClearing && !isDropping) {
             if (IsKeyPressed(KEY_A) && canMove(-1, 0))
+                posX--;
             if (IsKeyPressed(KEY_D) && canMove(1, 0))
+                posX++;
             if (IsKeyPressed(KEY_R))
                 rotateBlock();
             if (IsKeyPressed(KEY_X) && canMove(0, 1)) {
