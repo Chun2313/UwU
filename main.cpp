@@ -52,6 +52,13 @@ bool isClearing = false;
 float clearTimer = 0;
 int clearingRows[4];
 int clearingRowCount = 0;
+char currentBlock[4][4];
+
+void spawnBlock() {
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            currentBlock[i][j] = blocks[blockType][i][j];
+}
 
 void initBoard() {
     for (int i = 0; i < H; i++)
@@ -65,7 +72,7 @@ void initBoard() {
 bool canMove(int dx, int dy) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            if (blocks[blockType][i][j] != ' ') {
+            if (currentBlock[i][j] != ' ') {
                 int tx = posX + j + dx;
                 int ty = posY + i + dy;
                 if (tx < 1 || tx >= W - 1 || ty >= H - 1)
@@ -81,15 +88,15 @@ bool canMove(int dx, int dy) {
 void block2Board() {
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
-            if (blocks[blockType][i][j] != ' ')
-                board[posY + i][posX + j] = blocks[blockType][i][j];
+            if (currentBlock[i][j] != ' ')
+                board[posY + i][posX + j] = currentBlock[i][j];
 }
 
 void rotateBlock() {
     char rotated[4][4];
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
-            rotated[j][3 - i] = blocks[blockType][i][j];
+            rotated[j][3 - i] = currentBlock[i][j];
 
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
@@ -104,7 +111,7 @@ void rotateBlock() {
 
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
-            blocks[blockType][i][j] = rotated[i][j];
+            currentBlock[i][j] = rotated[i][j];
 }
 
 
@@ -117,6 +124,7 @@ int main() {
     for (int i = 0; i < 4; i++) rand();
     blockType = rand() % 7;
     nextBlockType = rand() % 7;
+    spawnBlock();
 
     while (!WindowShouldClose()) {
         if (!isClearing) {
@@ -146,6 +154,7 @@ int main() {
                 posY = 0;
                 blockType = nextBlockType;
                 nextBlockType = rand() % 7;
+                spawnBlock();
                 if (!canMove(0, 0)) {
                     initBoard();
                     score = 0;
@@ -176,6 +185,7 @@ int main() {
                         posY = 0;
                         blockType = nextBlockType;
                         nextBlockType = rand() % 7;
+                        spawnBlock();
                         if (!canMove(0, 0)) {
                             initBoard();
                             score = 0;
@@ -207,7 +217,7 @@ int main() {
 
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-                if (blocks[blockType][i][j] != ' ') {
+                if (currentBlock[i][j] != ' ') {
                     DrawRectangle((posX + j) * cellSize, (posY + i) * cellSize,
                                   cellSize - 1, cellSize - 1, RED);
                 }
