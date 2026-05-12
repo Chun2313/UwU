@@ -8,7 +8,7 @@ A classic Tetris game built with C++ and Raylib.
 
 ```bash
 brew install raylib
-g++ main.cpp -o tetris -std=c++11 -lraylib -framework OpenGL -framework Cocoa -framework IOKit -framework CoreAudio
+g++ main.cpp -o tetris -I/opt/homebrew/include -L/opt/homebrew/lib -lraylib
 ./tetris
 ```
 
