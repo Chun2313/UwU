@@ -75,6 +75,7 @@ float dropStartY = 0, dropEndY = 0, dropAnimTimer = 0;
 
 int scorePopupValue = 0;
 float scorePopupTimer = 0;
+float acePopupTimer = 0;
 
 float pX[MAX_PARTICLES], pY[MAX_PARTICLES];
 float pVX[MAX_PARTICLES], pVY[MAX_PARTICLES];
@@ -217,6 +218,7 @@ int main() {
         float dt = GetFrameTime();
         gameTimer += dt;
         if (scorePopupTimer > 0) scorePopupTimer -= dt;
+        if (acePopupTimer > 0) acePopupTimer -= dt;
 
         if (isDropping) {
             dropAnimTimer -= dt;
@@ -263,9 +265,12 @@ int main() {
                     for (int r = clearingRows[k]; r > 0; r--)
                         for (int j = 1; j < W - 1; j++)
                             board[r][j] = board[r - 1][j];
+                int prevScore = score;
                 score += clearingRowCount * 100;
                 scorePopupValue = clearingRowCount * 100;
                 scorePopupTimer = 1.5f;
+                if (score > 0 && score / 500 > prevScore / 500)
+                    acePopupTimer = 2.0f;
                 isClearing = false;
                 posX = 5;
                 posY = 0;
@@ -474,6 +479,15 @@ int main() {
             Color c = YELLOW;
             c.a = (unsigned char)(a * 255);
             DrawText(TextFormat("+%d", scorePopupValue), sidebarX, 125 - offsetY, 25, c);
+        }
+
+        if (acePopupTimer > 0) {
+            float a = acePopupTimer / 2.0f;
+            int offsetY = (int)((1.0f - a) * 50);
+            Color ac = GOLD;
+            ac.a = (unsigned char)(a * 255);
+            int aceWidth = MeasureText("ACE", 40);
+            DrawText("ACE", sidebarX + 120 - aceWidth, 120 - offsetY, 40, ac);
         }
 
         DrawText("TIME", sidebarX, 200, 20, LIGHTGRAY);
