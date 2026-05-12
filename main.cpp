@@ -114,6 +114,7 @@ void rotateBlock() {
             blocks[blockType][i][j] = rotated[i][j];
 }
 
+
 int main() {
     InitWindow(W * cellSize, H * cellSize, "Tetris Raylib - MacOS");
     SetTargetFPS(60);
@@ -170,6 +171,11 @@ int main() {
                 }
             }
         }
+
+        for (int i = 0; i < H; i++)
+            DrawLine(0, i * cellSize, W * cellSize, i * cellSize, DARKGRAY);
+        for (int j = 0; j < W; j++)
+            DrawLine(j * cellSize, 0, j * cellSize, H * cellSize, DARKGRAY);
 
         EndDrawing();
     }
