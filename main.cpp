@@ -12,7 +12,14 @@ const int screenWidth = 650;
 const int screenHeight = 600;
 const int MAX_PARTICLES = 600;
 
-Color colors[] = {LIGHTGRAY, RED, GREEN, BLUE, YELLOW, PURPLE, ORANGE, PINK};
+Color palette[] = {
+    {0x6C, 0x7E, 0xE1, 0xFF},
+    {0x92, 0xB9, 0xE3, 0xFF},
+    {0xFF, 0xC4, 0xA4, 0xFF},
+    {0xFB, 0xA2, 0xD0, 0xFF},
+    {0xC6, 0x88, 0xEB, 0xFF},
+};
+Color blockColors[7];
 
 char board[H][W] = {};
 char blocks[][4][4] = {{{' ', 'I', ' ', ' '},
@@ -132,7 +139,12 @@ void block2Board() {
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
             if (blocks[blockType][i][j] != ' ')
-                board[posY + i][posX + j] = blocks[blockType][i][j];
+                board[posY + i][posX + j] = '0' + blockType;
+}
+
+void initColors() {
+    for (int i = 0; i < 7; i++)
+        blockColors[i] = palette[rand() % 5];
 }
 
 void rotateBlock() {
@@ -163,6 +175,7 @@ int main() {
     SetTargetFPS(60);
     srand(time(0));
 
+    initColors();
     initBoard();
     blockType = rand() % 7;
     nextBlockType = rand() % 7;
@@ -266,6 +279,8 @@ int main() {
                     Color blockColor;
                     if (isFlashRow && isClearing)
                         blockColor = ColorFromHSV(hue + i * 30, 1, 1);
+                    else if (board[i][j] >= '0' && board[i][j] <= '6')
+                        blockColor = blockColors[board[i][j] - '0'];
                     else
                         blockColor = BLUE;
                     DrawRectangleRounded((Rectangle){(float)rx, (float)ry, cellSize - 1, cellSize - 1}, 0.25f, 4, blockColor);
@@ -298,7 +313,8 @@ int main() {
                 if (blocks[blockType][i][j] != ' ') {
                     float bx = (float)((posX + j) * cellSize + (int)shakeX);
                     float by = (float)((posY + i) * cellSize + (int)shakeY);
-                    DrawRectangleRounded((Rectangle){bx, by, cellSize - 1, cellSize - 1}, 0.25f, 4, RED);
+                    Color c = blockColors[blockType];
+                    DrawRectangleRounded((Rectangle){bx, by, cellSize - 1, cellSize - 1}, 0.25f, 4, c);
                     DrawRectangleRounded((Rectangle){bx + 2, by + 2, cellSize - 5, cellSize - 5}, 0.2f, 4, Fade(WHITE, 0.15f));
                 }
             }
@@ -356,7 +372,8 @@ int main() {
                 if (blocks[nextBlockType][i][j] != ' ') {
                     float nb = (float)(sidebarX + j * 25 + 10);
                     float nby = (float)(330 + i * 25 + 10);
-                    DrawRectangleRounded((Rectangle){nb, nby, 23, 23}, 0.25f, 4, RED);
+                    Color c = blockColors[nextBlockType];
+                    DrawRectangleRounded((Rectangle){nb, nby, 23, 23}, 0.25f, 4, c);
                     DrawRectangleRounded((Rectangle){nb + 1.5f, nby + 1.5f, 20, 20}, 0.2f, 4, Fade(WHITE, 0.12f));
                 }
             }
