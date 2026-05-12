@@ -272,15 +272,18 @@ int main() {
                     for (int r = clearingRows[k]; r > 0; r--)
                         for (int j = 1; j < W - 1; j++)
                             board[r][j] = board[r - 1][j];
+                int prevScore = score;
                 score += clearingRowCount * 100;
                 scorePopupValue = clearingRowCount * 100;
                 scorePopupTimer = 1.5f;
-                if (score > 0 && score / 500 > (score - clearingRowCount * 100) / 500)
+                if (score > 0 && score / 500 > prevScore / 500)
                     acePopupTimer = 2.0f;
-                if (clearingRowCount < 5)
-                    PlaySound(milestoneSounds[clearingRowCount]);
-                if (clearingRowCount == 4)
-                    PlaySound(milestoneSounds[0]);
+                int ms[] = {0, 100, 200, 300, 400};
+                for (int m = 0; m < 5; m++) {
+                    int target = (score / 500) * 500 + ms[m];
+                    if (target > 0 && prevScore < target && score >= target)
+                        PlaySound(milestoneSounds[m]);
+                }
                 isClearing = false;
                 posX = 5;
                 posY = 0;
