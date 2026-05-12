@@ -131,6 +131,28 @@ void removeLine() {
     }
 }
 
+void rotateBlock() {
+    char rotated[4][4];
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            rotated[j][3 - i] = blocks[b][i][j];
+
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            if (rotated[i][j] != ' ') {
+                int tx = x + j;
+                int ty = y + i;
+                if (tx < 1 || tx >= W - 1 || ty >= H - 1)
+                    return;
+                if (board[ty][tx] != ' ')
+                    return;
+            }
+
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            blocks[b][i][j] = rotated[i][j];
+}
+
 int main() {
     srand(time(0));
     b = rand() % 7;
@@ -146,6 +168,8 @@ int main() {
                 x++;
             if (c == 'x' && canMove(0, 1))
                 y++;
+            if (c == 'r')
+                rotateBlock();
             if (c == 'q')
                 break;
         }
