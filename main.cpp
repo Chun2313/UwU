@@ -18,6 +18,8 @@ Color palette[] = {
     {0xFF, 0xC4, 0xA4, 0xFF},
     {0xFB, 0xA2, 0xD0, 0xFF},
     {0xC6, 0x88, 0xEB, 0xFF},
+    {0x7D, 0xDF, 0xB2, 0xFF},
+    {0xF5, 0xE5, 0x7A, 0xFF},
 };
 Color blockColors[7];
 
@@ -60,6 +62,8 @@ bool isClearing = false;
 float clearTimer = 0;
 int clearingRows[4];
 int clearingRowCount = 0;
+bool isDropping = false;
+float dropStartY = 0, dropEndY = 0, dropAnimTimer = 0;
 
 int scorePopupValue = 0;
 float scorePopupTimer = 0;
@@ -181,20 +185,62 @@ int main() {
     nextBlockType = rand() % 7;
 
     while (!WindowShouldClose()) {
-        if (!isClearing) {
+        if (!isClearing && !isDropping) {
             if (IsKeyPressed(KEY_A) && canMove(-1, 0))
-                posX--;
             if (IsKeyPressed(KEY_D) && canMove(1, 0))
-                posX++;
-            if (IsKeyPressed(KEY_X) && canMove(0, 1))
-                posY++;
             if (IsKeyPressed(KEY_R))
                 rotateBlock();
+            if (IsKeyPressed(KEY_X) && canMove(0, 1)) {
+                int target = posY;
+                while (canMove(0, target - posY + 1)) target++;
+                if (target > posY) {
+                    isDropping = true;
+                    dropStartY = posY;
+                    dropEndY = target;
+                    dropAnimTimer = 0.3f;
+                }
+            }
         }
 
         float dt = GetFrameTime();
         gameTimer += dt;
         if (scorePopupTimer > 0) scorePopupTimer -= dt;
+
+        if (isDropping) {
+            dropAnimTimer -= dt;
+            float t = 1.0f - dropAnimTimer / 0.3f;
+            t = t < 0 ? 0 : (t > 1 ? 1 : t);
+            posY = (int)(dropStartY + (dropEndY - dropStartY) * t);
+            if (dropAnimTimer <= 0) {
+                posY = (int)dropEndY;
+                isDropping = false;
+                block2Board();
+                clearingRowCount = 0;
+                for (int i = H - 2; i > 0; i--) {
+                    int filledCount = 0;
+                    for (int j = 1; j < W - 1; j++)
+                        if (board[i][j] != ' ')
+                            filledCount++;
+                    if (filledCount == W - 2)
+                        clearingRows[clearingRowCount++] = i;
+                }
+                if (clearingRowCount > 0) {
+                    isClearing = true;
+                    clearTimer = 1.0f;
+                    spawnParticles();
+                } else {
+                    posX = 5;
+                    posY = 0;
+                    blockType = nextBlockType;
+                    nextBlockType = rand() % 7;
+                    if (!canMove(0, 0)) {
+                        initBoard();
+                        score = 0;
+                        gameTimer = 0;
+                    }
+                }
+            }
+        }
 
         if (isClearing) {
             clearTimer -= dt;
@@ -219,8 +265,9 @@ int main() {
                 }
             }
         } else {
+            float speed = moveSpeed;
             dropTimer += dt;
-            if (dropTimer >= moveSpeed) {
+            if (dropTimer >= speed) {
                 if (canMove(0, 1))
                     posY++;
                 else {
@@ -304,6 +351,40 @@ int main() {
                         (int)(cellSize + s * 2),
                         glow
                     );
+                }
+            }
+        }
+
+        if (isDropping) {
+            float progress = 1.0f - dropAnimTimer / 0.3f;
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    if (blocks[blockType][i][j] != ' ') {
+                        float gx = (float)((posX + j) * cellSize + (int)shakeX);
+                        float gy = (float)(((int)dropEndY + i) * cellSize + (int)shakeY);
+                        Color gc = blockColors[blockType];
+                        gc.a = (unsigned char)(80 * (1.0f - progress));
+                        DrawRectangleRounded((Rectangle){gx, gy, cellSize - 1, cellSize - 1}, 0.25f, 4, gc);
+                    }
+                }
+            }
+            for (int trail = 1; trail < (int)(dropEndY - dropStartY); trail++) {
+                float trailAlpha = (1.0f - progress) * (1.0f - trail / (dropEndY - dropStartY)) * 100;
+                if (trailAlpha < 5) continue;
+                int trailY = (int)dropStartY + trail - 1;
+                if (trailY >= posY) continue;
+                for (int i = 0; i < 4; i++) {
+                    for (int j = 0; j < 4; j++) {
+                        if (blocks[blockType][i][j] != ' ') {
+                            Color tc = blockColors[blockType];
+                            tc.a = (unsigned char)trailAlpha;
+                            DrawRectangleRounded((Rectangle){
+                                (float)((posX + j) * cellSize + (int)shakeX),
+                                (float)((trailY + i) * cellSize + (int)shakeY),
+                                cellSize - 1, cellSize - 1
+                            }, 0.25f, 4, tc);
+                        }
+                    }
                 }
             }
         }
