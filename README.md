@@ -45,3 +45,4 @@ g++ main.cpp -o tetris.exe -std=c++11 -I<vcpkg_include> -L<vcpkg_lib> -lraylib -
 - **A** — Move left
 - **D** — Move right
 - **X** — Soft drop
+- **R** — Rotate piece
