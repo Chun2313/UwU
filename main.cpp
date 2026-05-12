@@ -8,7 +8,7 @@ using namespace std;
 const int H = 20;
 const int W = 15;
 const int cellSize = 30;
-const int screenWidth = 600;
+const int screenWidth = 650;
 const int screenHeight = 600;
 const int MAX_PARTICLES = 600;
 
@@ -275,12 +275,13 @@ int main() {
                     bool isFlashRow = false;
                     for (int k = 0; k < clearingRowCount; k++)
                         if (clearingRows[k] == i) { isFlashRow = true; break; }
-                    if (isFlashRow && isClearing) {
-                        Color c = ColorFromHSV(hue + i * 30, 1, 1);
-                        DrawRectangle(rx, ry, cellSize - 1, cellSize - 1, c);
-                    } else {
-                        DrawRectangle(rx, ry, cellSize - 1, cellSize - 1, BLUE);
-                    }
+                    Color blockColor;
+                    if (isFlashRow && isClearing)
+                        blockColor = ColorFromHSV(hue + i * 30, 1, 1);
+                    else
+                        blockColor = BLUE;
+                    DrawRectangleRounded((Rectangle){(float)rx, (float)ry, cellSize - 1, cellSize - 1}, 0.25f, 4, blockColor);
+                    DrawRectangleRounded((Rectangle){(float)rx + 2, (float)ry + 2, cellSize - 5, cellSize - 5}, 0.2f, 4, Fade(WHITE, 0.12f));
                 }
             }
         }
@@ -307,9 +308,10 @@ int main() {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (currentBlock[i][j] != ' ') {
-                    DrawRectangle((posX + j) * cellSize + (int)shakeX,
-                                  (posY + i) * cellSize + (int)shakeY,
-                                  cellSize - 1, cellSize - 1, RED);
+                    float bx = (float)((posX + j) * cellSize + (int)shakeX);
+                    float by = (float)((posY + i) * cellSize + (int)shakeY);
+                    DrawRectangleRounded((Rectangle){bx, by, cellSize - 1, cellSize - 1}, 0.25f, 4, RED);
+                    DrawRectangleRounded((Rectangle){bx + 2, by + 2, cellSize - 5, cellSize - 5}, 0.2f, 4, Fade(WHITE, 0.15f));
                 }
             }
         }
@@ -360,11 +362,14 @@ int main() {
         DrawText(TextFormat("%02d:%02d", (int)gameTimer / 60, (int)gameTimer % 60), sidebarX, 225, 30, GREEN);
 
         DrawText("NEXT", sidebarX, 300, 20, LIGHTGRAY);
-        DrawRectangle(sidebarX, 330, 120, 120, Fade(DARKGRAY, 0.3f));
+        DrawRectangleRounded((Rectangle){(float)sidebarX, 330, 120, 120}, 0.15f, 4, Fade(DARKGRAY, 0.3f));
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (blocks[nextBlockType][i][j] != ' ') {
-                    DrawRectangle(sidebarX + j * 25 + 10, 330 + i * 25 + 10, 23, 23, RED);
+                    float nb = (float)(sidebarX + j * 25 + 10);
+                    float nby = (float)(330 + i * 25 + 10);
+                    DrawRectangleRounded((Rectangle){nb, nby, 23, 23}, 0.25f, 4, RED);
+                    DrawRectangleRounded((Rectangle){nb + 1.5f, nby + 1.5f, 20, 20}, 0.2f, 4, Fade(WHITE, 0.12f));
                 }
             }
         }
