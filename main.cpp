@@ -129,6 +129,8 @@ int main() {
             posX++;
         if (IsKeyPressed(KEY_X) && canMove(0, 1))
             posY++;
+        if (IsKeyPressed(KEY_R))
+            rotateBlock();
 
         timer += GetFrameTime();
         if (timer >= moveSpeed) {
