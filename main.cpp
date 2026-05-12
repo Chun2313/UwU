@@ -187,11 +187,11 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Tetris Raylib - Square GUI");
     InitAudioDevice();
     Sound milestoneSounds[5];
-    milestoneSounds[0] = LoadSound("500diem_A01_R.wav");
-    milestoneSounds[1] = LoadSound("100diem_A01_R.wav");
-    milestoneSounds[2] = LoadSound("200diem_A01_R.wav");
-    milestoneSounds[3] = LoadSound("300diem_A01_R.wav");
-    milestoneSounds[4] = LoadSound("400diem_A01_R.wav");
+    milestoneSounds[0] = LoadSound("audio/500diem_A01_R.wav");
+    milestoneSounds[1] = LoadSound("audio/100diem_A01_R.wav");
+    milestoneSounds[2] = LoadSound("audio/200diem_A01_R.wav");
+    milestoneSounds[3] = LoadSound("audio/300diem_A01_R.wav");
+    milestoneSounds[4] = LoadSound("audio/400diem_A01_R.wav");
     SetTargetFPS(60);
     srand(time(0) + clock());
 
