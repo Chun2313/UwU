@@ -209,7 +209,7 @@ int main() {
                     isDropping = true;
                     dropStartY = posY;
                     dropEndY = target;
-                    dropAnimTimer = 0.3f;
+                    dropAnimTimer = 0.19f;
                 }
             }
         }
@@ -220,7 +220,7 @@ int main() {
 
         if (isDropping) {
             dropAnimTimer -= dt;
-            float t = 1.0f - dropAnimTimer / 0.3f;
+            float t = 1.0f - dropAnimTimer / 0.19f;
             t = t < 0 ? 0 : (t > 1 ? 1 : t);
             posY = (int)(dropStartY + (dropEndY - dropStartY) * t);
             if (dropAnimTimer <= 0) {
@@ -371,7 +371,7 @@ int main() {
         }
 
         if (isDropping) {
-            float progress = 1.0f - dropAnimTimer / 0.3f;
+            float progress = 1.0f - dropAnimTimer / 0.19f;
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
                     if (blocks[blockType][i][j] != ' ') {
