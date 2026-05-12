@@ -369,8 +369,9 @@ int main() {
             }
         }
 
-        DrawText("A/D: Move", sidebarX, 500, 15, GRAY);
-        DrawText("X: Drop", sidebarX, 520, 15, GRAY);
+        DrawText("A/D: Move", sidebarX, 480, 15, GRAY);
+        DrawText("X: Drop", sidebarX, 500, 15, GRAY);
+        DrawText("R: Rotate", sidebarX, 520, 15, GRAY);
 
         EndDrawing();
     }
