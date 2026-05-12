@@ -1,12 +1,15 @@
 #include "raylib.h"
 #include <ctime>
 #include <vector>
+#include <string>
 
 using namespace std;
 
 const int H = 20;
 const int W = 15;
 const int cellSize = 30;
+const int screenWidth = 600;
+const int screenHeight = 600;
 
 Color colors[] = {LIGHTGRAY, RED, GREEN, BLUE, YELLOW, PURPLE, ORANGE, PINK};
 
@@ -40,8 +43,10 @@ char blocks[][4][4] = {{{' ', 'I', ' ', ' '},
                         {'L', 'L', 'L', ' '},
                         {' ', ' ', ' ', ' '}}};
 
-int posX = 4, posY = 0, blockType = 1;
-float timer = 0;
+int posX = 4, posY = 0, blockType = 1, nextBlockType = 0;
+int score = 0;
+float gameTimer = 0;
+float dropTimer = 0;
 float moveSpeed = 0.5f;
 
 void initBoard() {
@@ -76,7 +81,8 @@ void block2Board() {
                 board[posY + i][posX + j] = blocks[blockType][i][j];
 }
 
-void removeLine() {
+int removeLine() {
+    int linesCleared = 0;
     for (int i = H - 2; i > 0; i--) {
         int filledCount = 0;
         for (int j = 1; j < W - 1; j++)
@@ -88,17 +94,20 @@ void removeLine() {
                 for (int jj = 1; jj < W - 1; jj++)
                     board[ii][jj] = board[ii - 1][jj];
             i++;
+            linesCleared++;
         }
     }
+    return linesCleared;
 }
 
 int main() {
-    InitWindow(W * cellSize, H * cellSize, "Tetris Raylib - MacOS");
+    InitWindow(screenWidth, screenHeight, "Tetris Raylib - Square GUI");
     SetTargetFPS(60);
     srand(time(0));
 
     initBoard();
     blockType = rand() % 7;
+    nextBlockType = rand() % 7;
 
     while (!WindowShouldClose()) {
         if (IsKeyPressed(KEY_A) && canMove(-1, 0))
@@ -108,25 +117,34 @@ int main() {
         if (IsKeyPressed(KEY_X) && canMove(0, 1))
             posY++;
 
-        timer += GetFrameTime();
-        if (timer >= moveSpeed) {
+        float dt = GetFrameTime();
+        gameTimer += dt;
+        dropTimer += dt;
+
+        if (dropTimer >= moveSpeed) {
             if (canMove(0, 1))
                 posY++;
             else {
                 block2Board();
-                removeLine();
+                int cleared = removeLine();
+                score += cleared * 100;
                 posX = 5;
                 posY = 0;
-                blockType = rand() % 7;
-                if (!canMove(0, 0))
+                blockType = nextBlockType;
+                nextBlockType = rand() % 7;
+                if (!canMove(0, 0)) {
                     initBoard();
+                    score = 0;
+                    gameTimer = 0;
+                }
             }
-            timer = 0;
+            dropTimer = 0;
         }
 
         BeginDrawing();
         ClearBackground(BLACK);
 
+        // Draw Board
         for (int i = 0; i < H; i++) {
             for (int j = 0; j < W; j++) {
                 if (board[i][j] == '#')
@@ -138,6 +156,7 @@ int main() {
             }
         }
 
+        // Draw Current Block
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (blocks[blockType][i][j] != ' ') {
@@ -147,10 +166,34 @@ int main() {
             }
         }
 
-        for (int i = 0; i < H; i++)
-            DrawLine(0, i * cellSize, W * cellSize, i * cellSize, DARKGRAY);
-        for (int j = 0; j < W; j++)
-            DrawLine(j * cellSize, 0, j * cellSize, H * cellSize, DARKGRAY);
+        // Draw Grid Lines
+        for (int i = 0; i <= H; i++)
+            DrawLine(0, i * cellSize, W * cellSize, i * cellSize, Fade(DARKGRAY, 0.5f));
+        for (int j = 0; j <= W; j++)
+            DrawLine(j * cellSize, 0, j * cellSize, H * cellSize, Fade(DARKGRAY, 0.5f));
+
+        // Sidebar Area
+        int sidebarX = W * cellSize + 20;
+        DrawText("TETRIS", sidebarX, 20, 40, RAYWHITE);
+        
+        DrawText("SCORE", sidebarX, 100, 20, LIGHTGRAY);
+        DrawText(TextFormat("%06d", score), sidebarX, 125, 30, YELLOW);
+
+        DrawText("TIME", sidebarX, 200, 20, LIGHTGRAY);
+        DrawText(TextFormat("%02d:%02d", (int)gameTimer / 60, (int)gameTimer % 60), sidebarX, 225, 30, GREEN);
+
+        DrawText("NEXT", sidebarX, 300, 20, LIGHTGRAY);
+        DrawRectangle(sidebarX, 330, 120, 120, Fade(DARKGRAY, 0.3f));
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (blocks[nextBlockType][i][j] != ' ') {
+                    DrawRectangle(sidebarX + j * 25 + 10, 330 + i * 25 + 10, 23, 23, RED);
+                }
+            }
+        }
+
+        DrawText("A/D: Move", sidebarX, 500, 15, GRAY);
+        DrawText("X: Drop", sidebarX, 520, 15, GRAY);
 
         EndDrawing();
     }
