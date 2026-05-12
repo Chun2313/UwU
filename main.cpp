@@ -1,50 +1,20 @@
-#include <conio.h>
-#include <iostream>
-#include <windows.h>
+#include "raylib.h"
+#include <ctime>
+#include <vector>
+
 using namespace std;
-#define H 20
-#define W 15
+
+const int H = 20;
+const int W = 15;
+const int cellSize = 30;
+
+Color colors[] = {LIGHTGRAY, RED, GREEN, BLUE, YELLOW, PURPLE, ORANGE, PINK};
+
 char board[H][W] = {};
 char blocks[][4][4] = {{{' ', 'I', ' ', ' '},
                         {' ', 'I', ' ', ' '},
                         {' ', 'I', ' ', ' '},
                         {' ', 'I', ' ', ' '}},
-                       {{' ', 'I', ' ', ' '},
-                        {' ', 'I', ' ', ' '},
-                        {' ', 'I', ' ', ' '},
-                        {' ', 'I', ' ', ' '}},
-                       {{' ', ' ', ' ', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', ' ', ' ', ' '}},
-                       {{' ', ' ', ' ', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', ' ', ' ', ' '}},
-                       {{' ', ' ', ' ', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', ' ', ' ', ' '}},
-                       {{' ', ' ', ' ', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', ' ', ' ', ' '}},
-                       {{' ', ' ', ' ', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', ' ', ' ', ' '}},
-                       {{' ', ' ', ' ', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', ' ', ' ', ' '}},
-                       {{' ', ' ', ' ', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', 'O', 'O', ' '},
-                        {' ', ' ', ' ', ' '}},
-                       {{' ', ' ', ' ', ' '},
-                        {'I', 'I', 'I', 'I'},
-                        {' ', ' ', ' ', ' '},
-                        {' ', ' ', ' ', ' '}},
                        {{' ', ' ', ' ', ' '},
                         {' ', 'O', 'O', ' '},
                         {' ', 'O', 'O', ' '},
@@ -70,23 +40,10 @@ char blocks[][4][4] = {{{' ', 'I', ' ', ' '},
                         {'L', 'L', 'L', ' '},
                         {' ', ' ', ' ', ' '}}};
 
-int x = 4, y = 0, b = 1;
-void gotoxy(int x, int y) {
-    COORD c = {x, y};
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
-}
-void boardDelBlock() {
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            if (blocks[b][i][j] != ' ' && y + j < H)
-                board[y + i][x + j] = ' ';
-}
-void block2Board() {
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            if (blocks[b][i][j] != ' ')
-                board[y + i][x + j] = blocks[b][i][j];
-}
+int posX = 4, posY = 0, blockType = 1;
+float timer = 0;
+float moveSpeed = 0.5f;
+
 void initBoard() {
     for (int i = 0; i < H; i++)
         for (int j = 0; j < W; j++)
@@ -95,96 +52,104 @@ void initBoard() {
             else
                 board[i][j] = ' ';
 }
-void draw() {
-    gotoxy(0, 0);
-    for (int i = 0; i < H; i++, cout << endl)
-        for (int j = 0; j < W; j++)
-            cout << board[i][j];
-}
+
 bool canMove(int dx, int dy) {
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            if (blocks[b][i][j] != ' ') {
-                int tx = x + j + dx;
-                int ty = y + i + dy;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (blocks[blockType][i][j] != ' ') {
+                int tx = posX + j + dx;
+                int ty = posY + i + dy;
                 if (tx < 1 || tx >= W - 1 || ty >= H - 1)
                     return false;
                 if (board[ty][tx] != ' ')
                     return false;
             }
-    return true;
-}
-void removeLine() {
-    int j;
-    for (int i = H - 2; i > 0; i--) {
-        for (j = 0; j < W - 1; j++)
-            if (board[i][j] == ' ')
-                break;
-        if (j == W - 1) {
-            for (int ii = i; ii > 0; ii--)
-                for (int j = 0; j < W - 1; j++)
-                    board[ii][j] = board[ii - 1][j];
-            i++;
-            draw();
-            _sleep(200);
         }
     }
+    return true;
 }
 
-void rotateBlock() {
-    char rotated[4][4];
+void block2Board() {
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
-            rotated[j][3 - i] = blocks[b][i][j];
+            if (blocks[blockType][i][j] != ' ')
+                board[posY + i][posX + j] = blocks[blockType][i][j];
+}
 
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            if (rotated[i][j] != ' ') {
-                int tx = x + j;
-                int ty = y + i;
-                if (tx < 1 || tx >= W - 1 || ty >= H - 1)
-                    return;
-                if (board[ty][tx] != ' ')
-                    return;
-            }
+void removeLine() {
+    for (int i = H - 2; i > 0; i--) {
+        int filledCount = 0;
+        for (int j = 1; j < W - 1; j++)
+            if (board[i][j] != ' ')
+                filledCount++;
 
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            blocks[b][i][j] = rotated[i][j];
+        if (filledCount == W - 2) {
+            for (int ii = i; ii > 0; ii--)
+                for (int jj = 1; jj < W - 1; jj++)
+                    board[ii][jj] = board[ii - 1][jj];
+            i++;
+        }
+    }
 }
 
 int main() {
+    InitWindow(W * cellSize, H * cellSize, "Tetris Raylib - MacOS");
+    SetTargetFPS(60);
     srand(time(0));
-    b = rand() % 7;
-    system("cls");
+
     initBoard();
-    while (1) {
-        boardDelBlock();
-        if (kbhit()) {
-            char c = getch();
-            if (c == 'a' && canMove(-1, 0))
-                x--;
-            if (c == 'd' && canMove(1, 0))
-                x++;
-            if (c == 'x' && canMove(0, 1))
-                y++;
-            if (c == 'r')
-                rotateBlock();
-            if (c == 'q')
-                break;
+    blockType = rand() % 7;
+
+    while (!WindowShouldClose()) {
+        if (IsKeyPressed(KEY_A) && canMove(-1, 0))
+            posX--;
+        if (IsKeyPressed(KEY_D) && canMove(1, 0))
+            posX++;
+        if (IsKeyPressed(KEY_X) && canMove(0, 1))
+            posY++;
+
+        timer += GetFrameTime();
+        if (timer >= moveSpeed) {
+            if (canMove(0, 1))
+                posY++;
+            else {
+                block2Board();
+                removeLine();
+                posX = 5;
+                posY = 0;
+                blockType = rand() % 7;
+                if (!canMove(0, 0))
+                    initBoard();
+            }
+            timer = 0;
         }
-        if (canMove(0, 1))
-            y++;
-        else {
-            block2Board();
-            removeLine();
-            x = 5;
-            y = 0;
-            b = rand() % 7;
+
+        BeginDrawing();
+        ClearBackground(BLACK);
+
+        for (int i = 0; i < H; i++) {
+            for (int j = 0; j < W; j++) {
+                if (board[i][j] == '#')
+                    DrawRectangle(j * cellSize, i * cellSize, cellSize - 1,
+                                  cellSize - 1, DARKGRAY);
+                else if (board[i][j] != ' ')
+                    DrawRectangle(j * cellSize, i * cellSize, cellSize - 1,
+                                  cellSize - 1, BLUE);
+            }
         }
-        block2Board();
-        draw();
-        _sleep(200);
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (blocks[blockType][i][j] != ' ') {
+                    DrawRectangle((posX + j) * cellSize, (posY + i) * cellSize,
+                                  cellSize - 1, cellSize - 1, RED);
+                }
+            }
+        }
+
+        EndDrawing();
     }
+
+    CloseWindow();
     return 0;
 }
