@@ -111,9 +111,10 @@ void rotateBlock() {
 int main() {
     InitWindow(screenWidth, screenHeight, "Tetris Raylib - Square GUI");
     SetTargetFPS(60);
-    srand(time(0));
+    srand(time(0) + clock());
 
     initBoard();
+    for (int i = 0; i < 4; i++) rand();
     blockType = rand() % 7;
     nextBlockType = rand() % 7;
 
