@@ -156,7 +156,7 @@ void block2Board() {
 
 void initColors() {
     for (int i = 0; i < 7; i++)
-        blockColors[i] = palette[rand() % 7];
+        blockColors[i] = palette[i];
 }
 
 void rotateBlock() {
@@ -398,6 +398,24 @@ int main() {
                                 (float)((trailY + i) * cellSize + (int)shakeY),
                                 cellSize - 1, cellSize - 1
                             }, 0.25f, 4, tc);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!isDropping) {
+            int ghostY = posY;
+            while (canMove(0, ghostY - posY + 1)) ghostY++;
+            if (ghostY > posY) {
+                for (int i = 0; i < 4; i++) {
+                    for (int j = 0; j < 4; j++) {
+                        if (currentBlock[i][j] != ' ') {
+                            float gx = (float)((posX + j) * cellSize + (int)shakeX);
+                            float gy = (float)((ghostY + i) * cellSize + (int)shakeY);
+                            Color gc = blockColors[blockType];
+                            gc.a = 60;
+                            DrawRectangleRounded((Rectangle){gx, gy, cellSize - 1, cellSize - 1}, 0.25f, 4, gc);
                         }
                     }
                 }
