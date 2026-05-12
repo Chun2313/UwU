@@ -310,8 +310,7 @@ int main() {
             float alpha = progress < 0.2f ? progress / 0.2f : 1.0f;
             if (progress > 0.7f) alpha = 1.0f - (progress - 0.7f) / 0.3f;
             int fontSize = 40 + (int)(progress * 60);
-            const char* labels[] = {"CLEAR!", "AWESOME!", "PERFECT!"};
-            const char* label = labels[clearingRowCount > 1 ? (clearingRowCount > 2 ? 2 : 1) : 0];
+            const char* label = TextFormat("+%d", clearingRowCount * 100);
             int tw = MeasureText(label, fontSize);
             int cx = (W * cellSize - tw) / 2;
             int cy = (H * cellSize - fontSize) / 2;
