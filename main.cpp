@@ -48,6 +48,10 @@ int score = 0;
 float gameTimer = 0;
 float dropTimer = 0;
 float moveSpeed = 0.5f;
+bool isClearing = false;
+float clearTimer = 0;
+int clearingRows[4];
+int clearingRowCount = 0;
 
 void initBoard() {
     for (int i = 0; i < H; i++)
@@ -133,26 +137,29 @@ int main() {
     nextBlockType = rand() % 7;
 
     while (!WindowShouldClose()) {
-        if (IsKeyPressed(KEY_A) && canMove(-1, 0))
-            posX--;
-        if (IsKeyPressed(KEY_D) && canMove(1, 0))
-            posX++;
-        if (IsKeyPressed(KEY_X) && canMove(0, 1))
-            posY++;
-        if (IsKeyPressed(KEY_R))
-            rotateBlock();
+        if (!isClearing) {
+            if (IsKeyPressed(KEY_A) && canMove(-1, 0))
+                posX--;
+            if (IsKeyPressed(KEY_D) && canMove(1, 0))
+                posX++;
+            if (IsKeyPressed(KEY_X) && canMove(0, 1))
+                posY++;
+            if (IsKeyPressed(KEY_R))
+                rotateBlock();
+        }
 
         float dt = GetFrameTime();
         gameTimer += dt;
-        dropTimer += dt;
 
-        if (dropTimer >= moveSpeed) {
-            if (canMove(0, 1))
-                posY++;
-            else {
-                block2Board();
-                int cleared = removeLine();
-                score += cleared * 100;
+        if (isClearing) {
+            clearTimer -= dt;
+            if (clearTimer <= 0) {
+                for (int k = 0; k < clearingRowCount; k++)
+                    for (int r = clearingRows[k]; r > 0; r--)
+                        for (int j = 1; j < W - 1; j++)
+                            board[r][j] = board[r - 1][j];
+                score += clearingRowCount * 100;
+                isClearing = false;
                 posX = 5;
                 posY = 0;
                 blockType = nextBlockType;
@@ -163,25 +170,59 @@ int main() {
                     gameTimer = 0;
                 }
             }
-            dropTimer = 0;
+        } else {
+            dropTimer += dt;
+            if (dropTimer >= moveSpeed) {
+                if (canMove(0, 1))
+                    posY++;
+                else {
+                    block2Board();
+                    clearingRowCount = 0;
+                    for (int i = H - 2; i > 0; i--) {
+                        int filledCount = 0;
+                        for (int j = 1; j < W - 1; j++)
+                            if (board[i][j] != ' ')
+                                filledCount++;
+                        if (filledCount == W - 2)
+                            clearingRows[clearingRowCount++] = i;
+                    }
+                    if (clearingRowCount > 0) {
+                        isClearing = true;
+                        clearTimer = 1.0f;
+                    } else {
+                        posX = 5;
+                        posY = 0;
+                        blockType = nextBlockType;
+                        nextBlockType = rand() % 7;
+                        if (!canMove(0, 0)) {
+                            initBoard();
+                            score = 0;
+                            gameTimer = 0;
+                        }
+                    }
+                }
+                dropTimer = 0;
+            }
         }
 
         BeginDrawing();
         ClearBackground(BLACK);
 
-        // Draw Board
         for (int i = 0; i < H; i++) {
             for (int j = 0; j < W; j++) {
                 if (board[i][j] == '#')
                     DrawRectangle(j * cellSize, i * cellSize, cellSize - 1,
                                   cellSize - 1, DARKGRAY);
-                else if (board[i][j] != ' ')
+                else if (board[i][j] != ' ') {
+                    bool isHighlightRow = false;
+                    for (int k = 0; k < clearingRowCount; k++)
+                        if (clearingRows[k] == i) { isHighlightRow = true; break; }
                     DrawRectangle(j * cellSize, i * cellSize, cellSize - 1,
-                                  cellSize - 1, BLUE);
+                                  cellSize - 1, isHighlightRow && isClearing ? WHITE : BLUE);
+                }
             }
         }
 
-        // Draw Current Block
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (blocks[blockType][i][j] != ' ') {
@@ -191,16 +232,14 @@ int main() {
             }
         }
 
-        // Draw Grid Lines
         for (int i = 0; i <= H; i++)
             DrawLine(0, i * cellSize, W * cellSize, i * cellSize, Fade(DARKGRAY, 0.5f));
         for (int j = 0; j <= W; j++)
             DrawLine(j * cellSize, 0, j * cellSize, H * cellSize, Fade(DARKGRAY, 0.5f));
 
-        // Sidebar Area
         int sidebarX = W * cellSize + 20;
         DrawText("TETRIS", sidebarX, 20, 40, RAYWHITE);
-        
+
         DrawText("SCORE", sidebarX, 100, 20, LIGHTGRAY);
         DrawText(TextFormat("%06d", score), sidebarX, 125, 30, YELLOW);
 
