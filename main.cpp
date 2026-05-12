@@ -278,11 +278,13 @@ int main() {
                 scorePopupTimer = 1.5f;
                 if (score > 0 && score / 500 > (score - clearingRowCount * 100) / 500)
                     acePopupTimer = 2.0f;
-                if (clearingRowCount == 1) PlaySound(milestoneSounds[1]);
-                if (clearingRowCount == 2) PlaySound(milestoneSounds[2]);
-                if (clearingRowCount == 3) PlaySound(milestoneSounds[3]);
-                if (clearingRowCount == 4) PlaySound(milestoneSounds[4]);
-                if (clearingRowCount >= 4) PlaySound(milestoneSounds[0]);
+                int prevScore = score - clearingRowCount * 100;
+                int ms[] = {0, 100, 200, 300, 400};
+                for (int m = 0; m < 5; m++) {
+                    int target = (score / 500) * 500 + ms[m];
+                    if (target > 0 && prevScore < target && score >= target)
+                        PlaySound(milestoneSounds[m]);
+                }
                 isClearing = false;
                 posX = 5;
                 posY = 0;
