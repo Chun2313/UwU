@@ -147,6 +147,11 @@ int main() {
             }
         }
 
+        for (int i = 0; i < H; i++)
+            DrawLine(0, i * cellSize, W * cellSize, i * cellSize, DARKGRAY);
+        for (int j = 0; j < W; j++)
+            DrawLine(j * cellSize, 0, j * cellSize, H * cellSize, DARKGRAY);
+
         EndDrawing();
     }
 
