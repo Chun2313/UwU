@@ -246,12 +246,6 @@ int main() {
                         clearingRows[clearingRowCount++] = i;
                 }
                     if (clearingRowCount > 0) {
-                        int ms[] = {0, 100, 200, 300, 400};
-                        for (int m = 0; m < 5; m++) {
-                            int target = ((score + clearingRowCount * 100) / 500) * 500 + ms[m];
-                            if (target > 0 && score < target && score + clearingRowCount * 100 >= target)
-                                PlaySound(milestoneSounds[m]);
-                        }
                         isClearing = true;
                         clearTimer = 1.0f;
                         spawnParticles();
@@ -265,6 +259,73 @@ int main() {
                         initBoard();
                         score = 0;
                         gameTimer = 0;
+                    }
+                }
+                dropTimer = 0;
+            }
+        }
+
+        if (isClearing) {
+            clearTimer -= dt;
+            updateParticles(dt);
+            if (clearTimer <= 0) {
+                for (int k = 0; k < clearingRowCount; k++)
+                    for (int r = clearingRows[k]; r > 0; r--)
+                        for (int j = 1; j < W - 1; j++)
+                            board[r][j] = board[r - 1][j];
+                score += clearingRowCount * 100;
+                scorePopupValue = clearingRowCount * 100;
+                scorePopupTimer = 1.5f;
+                if (score > 0 && score / 500 > (score - clearingRowCount * 100) / 500)
+                    acePopupTimer = 2.0f;
+                if (clearingRowCount == 1) PlaySound(milestoneSounds[1]);
+                if (clearingRowCount == 2) PlaySound(milestoneSounds[2]);
+                if (clearingRowCount == 3) PlaySound(milestoneSounds[3]);
+                if (clearingRowCount == 4) PlaySound(milestoneSounds[4]);
+                if (clearingRowCount >= 4) PlaySound(milestoneSounds[0]);
+                isClearing = false;
+                posX = 5;
+                posY = 0;
+                blockType = nextBlockType;
+                nextBlockType = rand() % 7;
+                spawnBlock();
+                if (!canMove(0, 0)) {
+                    initBoard();
+                    score = 0;
+                    gameTimer = 0;
+                }
+            }
+        } else {
+            dropTimer += dt;
+            if (dropTimer >= moveSpeed) {
+                if (canMove(0, 1))
+                    posY++;
+                else {
+                    block2Board();
+                    clearingRowCount = 0;
+                    for (int i = H - 2; i > 0; i--) {
+                        int filledCount = 0;
+                        for (int j = 1; j < W - 1; j++)
+                            if (board[i][j] != ' ')
+                                filledCount++;
+                        if (filledCount == W - 2)
+                            clearingRows[clearingRowCount++] = i;
+                    }
+                    if (clearingRowCount > 0) {
+                        isClearing = true;
+                        clearTimer = 1.0f;
+                        spawnParticles();
+                    } else {
+                        posX = 5;
+                        posY = 0;
+                        blockType = nextBlockType;
+                        nextBlockType = rand() % 7;
+                        spawnBlock();
+                        if (!canMove(0, 0)) {
+                            initBoard();
+                            score = 0;
+                            gameTimer = 0;
+                        }
                     }
                 }
                 dropTimer = 0;
