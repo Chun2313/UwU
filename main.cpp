@@ -4,6 +4,7 @@
 #include <ctime>
 #include <cstring>
 #include <cstdio>
+#include <algorithm>
 
 using namespace std;
 
@@ -69,6 +70,7 @@ float gameTimer = 0;
 float dropTimer = 0;
 float moveSpeed = 0.5f;
 int difficulty = 0;
+int linesClearedTotal = 0;
 const char* diffNames[] = {"Noob", "Pro", "Hacker", "God", "Extredemon"};
 bool isClearing = false;
 float clearTimer = 0;
@@ -330,6 +332,7 @@ int main() {
                                 nameCharCount = 0;
                                 currentName[0] = '\0';
                                 moveSpeed = 0.5f / pow(1.5f, difficulty);
+                                linesClearedTotal = 0;
                             }
                             if (i == 2)
                                 gameState = 4;
@@ -464,12 +467,14 @@ int main() {
                             for (int j = 1; j < W - 1; j++)
                                 board[r][j] = board[r - 1][j];
                     score += clearingRowCount * 100;
+                    linesClearedTotal += clearingRowCount;
                     scorePopupValue = clearingRowCount * 100;
                     scorePopupTimer = 1.5f;
                     if (score > 0 &&
                         score / 500 > (score - clearingRowCount * 100) / 500)
                         acePopupTimer = 2.0f;
                     isClearing = false;
+                    moveSpeed = max(0.05f, moveSpeed * 0.95f);
                     posX = 5;
                     posY = 0;
                     blockType = nextBlockType;
