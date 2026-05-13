@@ -208,11 +208,11 @@ int main() {
         if (gameState == 0) {
             Vector2 mp = GetMousePosition();
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                int bx = W * cellSize / 2 - 100;
+                float bx = screenWidth / 2.0f - 100;
                 if (mp.x >= bx && mp.x <= bx + 200) {
-                    if (mp.y >= 200 && mp.y <= 250) gameState = 1;
-                    if (mp.y >= 280 && mp.y <= 330) gameState = 2;
-                    if (mp.y >= 360 && mp.y <= 410) gameState = 3;
+                    if (mp.y >= 220 && mp.y <= 270) gameState = 1;
+                    if (mp.y >= 300 && mp.y <= 350) gameState = 2;
+                    if (mp.y >= 380 && mp.y <= 430) gameState = 3;
                 }
             }
         }
@@ -369,16 +369,17 @@ int main() {
         ClearBackground(BLACK);
 
         if (gameState == 0) {
-            float bx = (float)(W * cellSize / 2 - 100);
-            DrawText("TETRIS", (int)bx, 60, 60, RAYWHITE);
+            float bx = screenWidth / 2.0f - 100;
+            int tw = MeasureText("TETRIS", 60);
+            DrawText("TETRIS", (screenWidth - tw) / 2, 80, 60, RAYWHITE);
             const char* items[] = {"Single Player", "2-Players", "Leaderboard"};
             for (int i = 0; i < 3; i++) {
-                float by = 200.0f + i * 80.0f;
+                float by = 220.0f + i * 80.0f;
                 Rectangle rec = {bx, by, 200, 50};
                 Color bc = CheckCollisionPointRec(GetMousePosition(), rec) ? Fade(RAYWHITE, 0.8f) : DARKGRAY;
                 DrawRectangleRounded(rec, 0.2f, 4, bc);
-                int tw = MeasureText(items[i], 20);
-                DrawText(items[i], (int)bx + (200 - tw) / 2, (int)by + 13, 20, BLACK);
+                int tw2 = MeasureText(items[i], 20);
+                DrawText(items[i], (int)(bx + (200 - tw2) / 2), (int)by + 13, 20, BLACK);
             }
             EndDrawing();
             continue;
