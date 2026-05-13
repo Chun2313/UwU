@@ -54,9 +54,10 @@ char blocks[][4][4] = {{{' ', 'I', ' ', ' '},
 
 int gameState = 0;
 const int MAX_ENTRIES = 10;
-char playerNames[MAX_ENTRIES][32];
-int playerScores[MAX_ENTRIES];
-int entryCount = 0;
+char playerNames[5][MAX_ENTRIES][32];
+int playerScores[5][MAX_ENTRIES];
+int entryCount[5] = {0, 0, 0, 0, 0};
+int leaderboardDiff = 0;
 char currentName[32] = "";
 int nameCharCount = 0;
 int pendingScore = 0;
@@ -66,6 +67,8 @@ int score = 0;
 float gameTimer = 0;
 float dropTimer = 0;
 float moveSpeed = 0.5f;
+int difficulty = 0;
+const char* diffNames[] = {"Noob", "Pro", "Hacker", "God", "Extredemon"};
 bool isClearing = false;
 float clearTimer = 0;
 int clearingRows[4];
@@ -205,9 +208,13 @@ int main() {
     Music menuMusic = LoadMusicStream("audio/anhdochauphi.mp3");
     PlayMusicStream(menuMusic);
     Music gameMusic = LoadMusicStream("audio/tidalwave.mp3");
-    SetMusicVolume(gameMusic, 0.07f);
+    float masterVolume = 1.0f;
+    float baseMusicVol = 0.07f;
+    float baseSoundVol = 3.0f;
+    SetMusicVolume(menuMusic, masterVolume);
+    SetMusicVolume(gameMusic, baseMusicVol * masterVolume);
     for (int i = 0; i < 5; i++)
-        SetSoundVolume(milestoneSounds[i], 3.0f);
+        SetSoundVolume(milestoneSounds[i], baseSoundVol * masterVolume);
     SetTargetFPS(60);
     srand(time(0) + clock());
 
@@ -228,7 +235,7 @@ int main() {
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 float bx = screenWidth / 2.0f - 130;
                 if (mp.x >= bx && mp.x <= bx + 260) {
-                    for (int i = 0; i < 3; i++) {
+                    for (int i = 0; i < 4; i++) {
                         float by = 180.0f + i * 90.0f;
                         if (mp.y >= by && mp.y <= by + 60) {
                             if (i == 0) {
@@ -240,9 +247,12 @@ int main() {
                                 gameTimer = 0;
                                 nameCharCount = 0;
                                 currentName[0] = '\0';
+                                moveSpeed = 0.5f / pow(1.5f, difficulty);
                             }
                             if (i == 2)
                                 gameState = 4;
+                            if (i == 3)
+                                gameState = 5;
                         }
                     }
                 }
@@ -268,20 +278,21 @@ int main() {
                     gameState = 2;
                     PlayMusicStream(gameMusic);
                 } else if (gameState == 3) {
-                    if (entryCount < MAX_ENTRIES) {
-                        strcpy(playerNames[entryCount], currentName);
-                        playerScores[entryCount] = pendingScore;
-                        entryCount++;
-                        for (int i = 0; i < entryCount - 1; i++) {
-                            for (int j = 0; j < entryCount - 1 - i; j++) {
-                                if (playerScores[j] < playerScores[j + 1]) {
-                                    int ts = playerScores[j];
-                                    playerScores[j] = playerScores[j + 1];
-                                    playerScores[j + 1] = ts;
+                    int d = difficulty;
+                    if (entryCount[d] < MAX_ENTRIES) {
+                        strcpy(playerNames[d][entryCount[d]], currentName);
+                        playerScores[d][entryCount[d]] = pendingScore;
+                        entryCount[d]++;
+                        for (int i = 0; i < entryCount[d] - 1; i++) {
+                            for (int j = 0; j < entryCount[d] - 1 - i; j++) {
+                                if (playerScores[d][j] < playerScores[d][j + 1]) {
+                                    int ts = playerScores[d][j];
+                                    playerScores[d][j] = playerScores[d][j + 1];
+                                    playerScores[d][j + 1] = ts;
                                     char tn[32];
-                                    strcpy(tn, playerNames[j]);
-                                    strcpy(playerNames[j], playerNames[j + 1]);
-                                    strcpy(playerNames[j + 1], tn);
+                                    strcpy(tn, playerNames[d][j]);
+                                    strcpy(playerNames[d][j], playerNames[d][j + 1]);
+                                    strcpy(playerNames[d][j + 1], tn);
                                 }
                             }
                         }
@@ -368,6 +379,7 @@ int main() {
                         nextBlockType = rand() % 7;
                         spawnBlock();
                         if (!canMove(0, 0)) {
+                            while (GetCharPressed() > 0);
                             pendingScore = score;
                             gameState = 3;
                             nameCharCount = 0;
@@ -470,8 +482,8 @@ int main() {
             DrawText("TETRIS", (screenWidth - tw) / 2, 70, 70, RAYWHITE);
             Color titleShadow = Fade(RAYWHITE, 0.15f);
             DrawText("TETRIS", (screenWidth - tw) / 2 + 3, 73, 70, titleShadow);
-            const char *items[] = {"Single Player", "2-Players", "Leaderboard"};
-            for (int i = 0; i < 3; i++) {
+            const char *items[] = {"Single Player", "2-Players", "Leaderboard", "Settings"};
+            for (int i = 0; i < 4; i++) {
                 float by = 180.0f + i * 90.0f;
                 Rectangle rec = {bx, by, 260, 60};
                 bool hover = CheckCollisionPointRec(GetMousePosition(), rec);
@@ -496,10 +508,31 @@ int main() {
         }
 
         if (gameState == 4) {
-            DrawText("LEADERBOARD", (screenWidth - MeasureText("LEADERBOARD", 50)) / 2, 50, 50, RAYWHITE);
-            int startY = 130;
+            DrawText("LEADERBOARD", (screenWidth - MeasureText("LEADERBOARD", 50)) / 2, 40, 50, RAYWHITE);
+
+            int tabY = 100;
+            int tabW = 110;
+            int tabH = 30;
+            int totalTabW = 5 * tabW + 4 * 6;
+            int tabStartX = (screenWidth - totalTabW) / 2;
+            for (int d = 0; d < 5; d++) {
+                int tx = tabStartX + d * (tabW + 6);
+                Rectangle tr = {(float)tx, (float)tabY, (float)tabW, (float)tabH};
+                bool hover = CheckCollisionPointRec(GetMousePosition(), tr);
+                if (hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                    leaderboardDiff = d;
+                Color tbg = (d == leaderboardDiff) ? (Color){0x4A, 0x6F, 0xE0, 0xFF} : (Color){0x2C, 0x2C, 0x3E, 0xCC};
+                Color tbrd = (d == leaderboardDiff) ? (Color){0x6C, 0x8E, 0xF0, 0xFF} : (Color){0x4A, 0x4A, 0x5E, 0xAA};
+                DrawRectangleRounded(tr, 0.3f, 4, tbg);
+                DrawRectangleRoundedLines(tr, 0.3f, 4, tbrd);
+                int dtw = MeasureText(diffNames[d], 16);
+                DrawText(diffNames[d], tx + (tabW - dtw) / 2, tabY + 7, 16, RAYWHITE);
+            }
+
+            int startY = 150;
             int nameX = screenWidth / 2 - 60;
-            for (int i = 0; i < entryCount && i < 10; i++) {
+            int ec = entryCount[leaderboardDiff];
+            for (int i = 0; i < ec && i < 10; i++) {
                 Color c = (i == 0) ? GOLD : ((i == 1) ? LIGHTGRAY : ((i == 2) ? ORANGE : GRAY));
                 int y = startY + i * 40;
                 int rankX = screenWidth / 2 - 180;
@@ -518,16 +551,95 @@ int main() {
                     DrawText(rankStr, rankX, y, 24, c);
                 }
                 char line[64];
-                snprintf(line, sizeof(line), "%s - %d", playerNames[i], playerScores[i]);
+                snprintf(line, sizeof(line), "%s - %d", playerNames[leaderboardDiff][i], playerScores[leaderboardDiff][i]);
                 DrawText(line, nameX, y, 24, c);
             }
-            if (entryCount == 0) {
+            if (ec == 0) {
                 int lw = MeasureText("No scores yet!", 24);
                 DrawText("No scores yet!", (screenWidth - lw) / 2, startY, 24, GRAY);
+            }
+            if (IsKeyPressed(KEY_Q)) {
+                gameState = 0;
+                PlayMusicStream(menuMusic);
             }
             const char* hint2 = "Press Q to return to menu";
             int hw2 = MeasureText(hint2, 16);
             DrawText(hint2, (screenWidth - hw2) / 2, startY + 10 * 40 + 20, 16, GRAY);
+            EndDrawing();
+            continue;
+        }
+
+        if (gameState == 5) {
+            DrawText("SETTINGS", (screenWidth - MeasureText("SETTINGS", 50)) / 2, 50, 50, RAYWHITE);
+
+            int sliderY = 200;
+            int sliderW = 300;
+            int sliderH = 12;
+            int sliderX = (screenWidth - sliderW) / 2;
+
+            Rectangle track = {(float)sliderX, (float)sliderY, (float)sliderW, (float)sliderH};
+            Vector2 mp = GetMousePosition();
+            bool onSlider = CheckCollisionPointRec(mp, track);
+            if (onSlider && IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+                masterVolume = (mp.x - sliderX) / sliderW;
+                if (masterVolume < 0) masterVolume = 0;
+                if (masterVolume > 1) masterVolume = 1;
+                SetMusicVolume(menuMusic, masterVolume);
+                SetMusicVolume(gameMusic, baseMusicVol * masterVolume);
+                for (int i = 0; i < 5; i++)
+                    SetSoundVolume(milestoneSounds[i], baseSoundVol * masterVolume);
+            }
+
+            DrawRectangleRounded(track, 0.3f, 4, (Color){0x4A, 0x4A, 0x5E, 0xAA});
+            float fillW = masterVolume * sliderW;
+            if (fillW > 0) {
+                Rectangle fill = {(float)sliderX, (float)sliderY, fillW, (float)sliderH};
+                DrawRectangleRounded(fill, 0.3f, 4, (Color){0x4A, 0x6F, 0xE0, 0xFF});
+            }
+
+            int knobX = sliderX + (int)(masterVolume * sliderW);
+            DrawCircle(knobX, sliderY + sliderH / 2, 10, RAYWHITE);
+
+            const char* volLabel = "Volume";
+            int vlw = MeasureText(volLabel, 20);
+            DrawText(volLabel, (screenWidth - vlw) / 2, sliderY - 40, 20, RAYWHITE);
+
+            char volPct[8];
+            snprintf(volPct, sizeof(volPct), "%d%%", (int)(masterVolume * 100));
+            int vpw = MeasureText(volPct, 16);
+            DrawText(volPct, (screenWidth - vpw) / 2, sliderY + 30, 16, GRAY);
+
+            int diffY = 300;
+            DrawText("Difficulty", (screenWidth - MeasureText("Difficulty", 20)) / 2, diffY - 30, 20, RAYWHITE);
+            int diffBtnW = 110;
+            int diffBtnH = 35;
+            int totalW = 5 * diffBtnW + 4 * 8;
+            int diffStartX = (screenWidth - totalW) / 2;
+            for (int d = 0; d < 5; d++) {
+                int dx = diffStartX + d * (diffBtnW + 8);
+                Rectangle dr = {(float)dx, (float)diffY, (float)diffBtnW, (float)diffBtnH};
+                bool hover = CheckCollisionPointRec(GetMousePosition(), dr);
+                if (hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                    difficulty = d;
+                Color dbg = (d == difficulty) ? (Color){0x4A, 0x6F, 0xE0, 0xFF} : (Color){0x2C, 0x2C, 0x3E, 0xCC};
+                Color dbrd = (d == difficulty) ? (Color){0x6C, 0x8E, 0xF0, 0xFF} : (Color){0x4A, 0x4A, 0x5E, 0xAA};
+                DrawRectangleRounded(dr, 0.3f, 4, dbg);
+                DrawRectangleRoundedLines(dr, 0.3f, 4, dbrd);
+                int dtw = MeasureText(diffNames[d], 16);
+                DrawText(diffNames[d], dx + (diffBtnW - dtw) / 2, diffY + 9, 16, RAYWHITE);
+            }
+
+            const char* credit = "This game made by Thinh, Minh, Son";
+            int cw = MeasureText(credit, 14);
+            DrawText(credit, (screenWidth - cw) / 2, 430, 14, (Color){0x88, 0x88, 0xAA, 0xFF});
+
+            if (IsKeyPressed(KEY_Q)) {
+                gameState = 0;
+                PlayMusicStream(menuMusic);
+            }
+            const char* hint2 = "Press Q to return to menu";
+            int hw2 = MeasureText(hint2, 16);
+            DrawText(hint2, (screenWidth - hw2) / 2, 500, 16, GRAY);
             EndDrawing();
             continue;
         }
