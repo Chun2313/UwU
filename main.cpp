@@ -194,8 +194,10 @@ int main() {
     milestoneSounds[2] = LoadSound("audio/200diem_A01_R.wav");
     milestoneSounds[3] = LoadSound("audio/300diem_A01_R.wav");
     milestoneSounds[4] = LoadSound("audio/400diem_A01_R.wav");
-    Music music = LoadMusicStream("audio/anhdochauphi.mp3");
-    PlayMusicStream(music);
+    Music menuMusic = LoadMusicStream("audio/anhdochauphi.mp3");
+    PlayMusicStream(menuMusic);
+    Music gameMusic = LoadMusicStream("audio/tidalwave.mp3");
+    SetMusicVolume(gameMusic, 0.3f);
     SetTargetFPS(60);
     srand(time(0) + clock());
 
@@ -207,7 +209,8 @@ int main() {
     spawnBlock();
 
     while (!WindowShouldClose()) {
-        UpdateMusicStream(music);
+        UpdateMusicStream(menuMusic);
+        if (gameState == 1) UpdateMusicStream(gameMusic);
         if (gameState == 0) {
             Vector2 mp = GetMousePosition();
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -216,7 +219,7 @@ int main() {
                     for (int i = 0; i < 3; i++) {
                         float by = 180.0f + i * 90.0f;
                         if (mp.y >= by && mp.y <= by + 60) {
-                            if (i == 0) { gameState = 1; StopMusicStream(music); }
+                            if (i == 0) { gameState = 1; StopMusicStream(menuMusic); PlayMusicStream(gameMusic); }
                             if (i == 1) gameState = 2;
                             if (i == 2) gameState = 3;
                         }
@@ -595,7 +598,8 @@ int main() {
 
     for (int i = 0; i < 5; i++)
         UnloadSound(milestoneSounds[i]);
-    UnloadMusicStream(music);
+    UnloadMusicStream(menuMusic);
+    UnloadMusicStream(gameMusic);
     CloseAudioDevice();
     CloseWindow();
     return 0;
