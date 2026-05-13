@@ -285,19 +285,19 @@ int main() {
                     gameState = 4;
                 }
             }
-            if (IsKeyPressed(KEY_ESCAPE)) {
+            if (IsKeyPressed(KEY_Q)) {
                 gameState = 0;
                 PlayMusicStream(menuMusic);
             }
         }
 
-        if (gameState == 4 && IsKeyPressed(KEY_ESCAPE)) {
+        if (gameState == 4 && IsKeyPressed(KEY_Q)) {
             gameState = 0;
             PlayMusicStream(menuMusic);
         }
 
         if (gameState == 2) {
-            if (IsKeyPressed(KEY_ESCAPE)) { gameState = 0; initBoard(); score = 0; gameTimer = 0; PlayMusicStream(menuMusic); StopMusicStream(gameMusic); }
+            if (IsKeyPressed(KEY_Q)) { gameState = 0; initBoard(); score = 0; gameTimer = 0; PlayMusicStream(menuMusic); StopMusicStream(gameMusic); }
             if (!isClearing && !isDropping) {
                 if (IsKeyPressed(KEY_A) && canMove(-1, 0))
                     posX--;
@@ -503,7 +503,7 @@ int main() {
                 int lw = MeasureText("No scores yet!", 24);
                 DrawText("No scores yet!", (screenWidth - lw) / 2, startY, 24, GRAY);
             }
-            const char* hint2 = "Press ESC to return to menu";
+            const char* hint2 = "Press Q to return to menu";
             int hw2 = MeasureText(hint2, 16);
             DrawText(hint2, (screenWidth - hw2) / 2, startY + 10 * 40 + 20, 16, GRAY);
             EndDrawing();
@@ -524,7 +524,7 @@ int main() {
                 int cursorX = screenWidth / 2 + cw / 2 + 2;
                 DrawText("|", cursorX, 270, 28, RAYWHITE);
             }
-            const char* hint = "Press ENTER to confirm, ESC to go back";
+            const char* hint = "Press ENTER to confirm, Q to go back";
             int hw = MeasureText(hint, 16);
             DrawText(hint, (screenWidth - hw) / 2, 330, 16, GRAY);
             EndDrawing();
@@ -544,7 +544,7 @@ int main() {
                 int cursorX = screenWidth / 2 + cw / 2 + 2;
                 DrawText("|", cursorX, 270, 28, RAYWHITE);
             }
-            const char* hint = "Press ENTER to confirm, ESC to go back";
+            const char* hint = "Press ENTER to confirm, Q to go back";
             int hw = MeasureText(hint, 16);
             DrawText(hint, (screenWidth - hw) / 2, 330, 16, GRAY);
             EndDrawing();
