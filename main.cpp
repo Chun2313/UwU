@@ -53,6 +53,8 @@ char blocks[][4][4] = {{{' ', 'I', ' ', ' '},
                         {'L', 'L', 'L', ' '},
                         {' ', ' ', ' ', ' '}}};
 
+int gameState = 0;
+
 int posX = 4, posY = 0, blockType = 1, nextBlockType = 0;
 int score = 0;
 float gameTimer = 0;
@@ -203,6 +205,19 @@ int main() {
     spawnBlock();
 
     while (!WindowShouldClose()) {
+        if (gameState == 0) {
+            Vector2 mp = GetMousePosition();
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                int bx = W * cellSize / 2 - 100;
+                if (mp.x >= bx && mp.x <= bx + 200) {
+                    if (mp.y >= 200 && mp.y <= 250) gameState = 1;
+                    if (mp.y >= 280 && mp.y <= 330) gameState = 2;
+                    if (mp.y >= 360 && mp.y <= 410) gameState = 3;
+                }
+            }
+        }
+
+        if (gameState == 1) {
         if (!isClearing && !isDropping) {
             if (IsKeyPressed(KEY_A) && canMove(-1, 0))
                 posX--;
@@ -341,6 +356,8 @@ int main() {
             }
         }
 
+        }
+
         float shakeX = 0, shakeY = 0;
         if (isClearing) {
             float intensity = clearTimer * 4;
@@ -350,6 +367,22 @@ int main() {
 
         BeginDrawing();
         ClearBackground(BLACK);
+
+        if (gameState == 0) {
+            float bx = (float)(W * cellSize / 2 - 100);
+            DrawText("TETRIS", (int)bx, 60, 60, RAYWHITE);
+            const char* items[] = {"Single Player", "2-Players", "Leaderboard"};
+            for (int i = 0; i < 3; i++) {
+                float by = 200.0f + i * 80.0f;
+                Rectangle rec = {bx, by, 200, 50};
+                Color bc = CheckCollisionPointRec(GetMousePosition(), rec) ? Fade(RAYWHITE, 0.8f) : DARKGRAY;
+                DrawRectangleRounded(rec, 0.2f, 4, bc);
+                int tw = MeasureText(items[i], 20);
+                DrawText(items[i], (int)bx + (200 - tw) / 2, (int)by + 13, 20, BLACK);
+            }
+            EndDrawing();
+            continue;
+        }
 
         float hue = fmod(clearTimer * 480, 360);
 
