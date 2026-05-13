@@ -197,7 +197,8 @@ int main() {
     Music menuMusic = LoadMusicStream("audio/anhdochauphi.mp3");
     PlayMusicStream(menuMusic);
     Music gameMusic = LoadMusicStream("audio/tidalwave.mp3");
-    SetMusicVolume(gameMusic, 0.12f);
+    SetMusicVolume(gameMusic, 0.1f);
+    for (int i = 0; i < 5; i++) SetSoundVolume(milestoneSounds[i], 1.0f);
     SetTargetFPS(60);
     srand(time(0) + clock());
 
