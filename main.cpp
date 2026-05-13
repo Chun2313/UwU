@@ -232,8 +232,12 @@ int main() {
                         float by = 180.0f + i * 90.0f;
                         if (mp.y >= by && mp.y <= by + 60) {
                             if (i == 0) {
-                                gameState = 1;
+                                gameState = 2;
                                 StopMusicStream(menuMusic);
+                                PlayMusicStream(gameMusic);
+                                initBoard();
+                                score = 0;
+                                gameTimer = 0;
                                 nameCharCount = 0;
                                 currentName[0] = '\0';
                             }
@@ -270,7 +274,7 @@ int main() {
                         entryCount++;
                         for (int i = 0; i < entryCount - 1; i++) {
                             for (int j = 0; j < entryCount - 1 - i; j++) {
-                                if (playerScores[j] > playerScores[j + 1]) {
+                                if (playerScores[j] < playerScores[j + 1]) {
                                     int ts = playerScores[j];
                                     playerScores[j] = playerScores[j + 1];
                                     playerScores[j + 1] = ts;
@@ -395,9 +399,10 @@ int main() {
                     nextBlockType = rand() % 7;
                     spawnBlock();
                     if (!canMove(0, 0)) {
-                        initBoard();
-                        score = 0;
-                        gameTimer = 0;
+                        pendingScore = score;
+                        gameState = 3;
+                        nameCharCount = 0;
+                        currentName[0] = '\0';
                     }
                 }
             } else {
@@ -437,9 +442,10 @@ int main() {
                             nextBlockType = rand() % 7;
                             spawnBlock();
                             if (!canMove(0, 0)) {
-                                initBoard();
-                                score = 0;
-                                gameTimer = 0;
+                                pendingScore = score;
+                                gameState = 3;
+                                nameCharCount = 0;
+                                currentName[0] = '\0';
                             }
                         }
                     }
@@ -492,12 +498,28 @@ int main() {
         if (gameState == 4) {
             DrawText("LEADERBOARD", (screenWidth - MeasureText("LEADERBOARD", 50)) / 2, 50, 50, RAYWHITE);
             int startY = 130;
+            int nameX = screenWidth / 2 - 60;
             for (int i = 0; i < entryCount && i < 10; i++) {
-                char line[64];
-                snprintf(line, sizeof(line), "%d. %s - %d", i + 1, playerNames[i], playerScores[i]);
                 Color c = (i == 0) ? GOLD : ((i == 1) ? LIGHTGRAY : ((i == 2) ? ORANGE : GRAY));
-                int lw = MeasureText(line, 24);
-                DrawText(line, (screenWidth - lw) / 2, startY + i * 40, 24, c);
+                int y = startY + i * 40;
+                int rankX = screenWidth / 2 - 180;
+                if (i == 0) {
+                    DrawCircle(rankX + 12, y + 12, 12, GOLD);
+                    DrawText("1", rankX + 9, y + 5, 14, BLACK);
+                } else if (i == 1) {
+                    DrawCircle(rankX + 12, y + 12, 12, LIGHTGRAY);
+                    DrawText("2", rankX + 9, y + 5, 14, BLACK);
+                } else if (i == 2) {
+                    DrawCircle(rankX + 12, y + 12, 12, ORANGE);
+                    DrawText("3", rankX + 9, y + 5, 14, BLACK);
+                } else {
+                    char rankStr[8];
+                    snprintf(rankStr, sizeof(rankStr), "%d.", i + 1);
+                    DrawText(rankStr, rankX, y, 24, c);
+                }
+                char line[64];
+                snprintf(line, sizeof(line), "%s - %d", playerNames[i], playerScores[i]);
+                DrawText(line, nameX, y, 24, c);
             }
             if (entryCount == 0) {
                 int lw = MeasureText("No scores yet!", 24);
