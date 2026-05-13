@@ -194,6 +194,8 @@ int main() {
     milestoneSounds[2] = LoadSound("audio/200diem_A01_R.wav");
     milestoneSounds[3] = LoadSound("audio/300diem_A01_R.wav");
     milestoneSounds[4] = LoadSound("audio/400diem_A01_R.wav");
+    Music music = LoadMusicStream("audio/anhdochauphi.mp3");
+    PlayMusicStream(music);
     SetTargetFPS(60);
     srand(time(0) + clock());
 
@@ -205,14 +207,20 @@ int main() {
     spawnBlock();
 
     while (!WindowShouldClose()) {
+        UpdateMusicStream(music);
         if (gameState == 0) {
             Vector2 mp = GetMousePosition();
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                float bx = screenWidth / 2.0f - 100;
-                if (mp.x >= bx && mp.x <= bx + 200) {
-                    if (mp.y >= 220 && mp.y <= 270) gameState = 1;
-                    if (mp.y >= 300 && mp.y <= 350) gameState = 2;
-                    if (mp.y >= 380 && mp.y <= 430) gameState = 3;
+                float bx = screenWidth / 2.0f - 130;
+                if (mp.x >= bx && mp.x <= bx + 260) {
+                    for (int i = 0; i < 3; i++) {
+                        float by = 180.0f + i * 90.0f;
+                        if (mp.y >= by && mp.y <= by + 60) {
+                            if (i == 0) { gameState = 1; StopMusicStream(music); }
+                            if (i == 1) gameState = 2;
+                            if (i == 2) gameState = 3;
+                        }
+                    }
                 }
             }
         }
@@ -369,17 +377,29 @@ int main() {
         ClearBackground(BLACK);
 
         if (gameState == 0) {
-            float bx = screenWidth / 2.0f - 100;
-            int tw = MeasureText("TETRIS", 60);
-            DrawText("TETRIS", (screenWidth - tw) / 2, 80, 60, RAYWHITE);
+            float bx = screenWidth / 2.0f - 130;
+            int tw = MeasureText("TETRIS", 70);
+            DrawText("TETRIS", (screenWidth - tw) / 2, 70, 70, RAYWHITE);
+            Color titleShadow = Fade(RAYWHITE, 0.15f);
+            DrawText("TETRIS", (screenWidth - tw) / 2 + 3, 73, 70, titleShadow);
             const char* items[] = {"Single Player", "2-Players", "Leaderboard"};
             for (int i = 0; i < 3; i++) {
-                float by = 220.0f + i * 80.0f;
-                Rectangle rec = {bx, by, 200, 50};
-                Color bc = CheckCollisionPointRec(GetMousePosition(), rec) ? Fade(RAYWHITE, 0.8f) : DARKGRAY;
-                DrawRectangleRounded(rec, 0.2f, 4, bc);
-                int tw2 = MeasureText(items[i], 20);
-                DrawText(items[i], (int)(bx + (200 - tw2) / 2), (int)by + 13, 20, BLACK);
+                float by = 180.0f + i * 90.0f;
+                Rectangle rec = {bx, by, 260, 60};
+                bool hover = CheckCollisionPointRec(GetMousePosition(), rec);
+                Color bg, border;
+                if (hover) {
+                    bg = (Color){0x4A, 0x6F, 0xE0, 0xFF};
+                    border = (Color){0x6C, 0x8E, 0xF0, 0xFF};
+                } else {
+                    bg = (Color){0x2C, 0x2C, 0x3E, 0xCC};
+                    border = (Color){0x4A, 0x4A, 0x5E, 0xAA};
+                }
+                DrawRectangleRounded(rec, 0.3f, 6, bg);
+                DrawRectangleRoundedLines(rec, 0.3f, 6, border);
+                int tw2 = MeasureText(items[i], 22);
+                Color textColor = hover ? RAYWHITE : (Color){0xCC, 0xCC, 0xDD, 0xFF};
+                DrawText(items[i], (int)(bx + (260 - tw2) / 2), (int)by + 17, 22, textColor);
             }
             EndDrawing();
             continue;
@@ -575,6 +595,7 @@ int main() {
 
     for (int i = 0; i < 5; i++)
         UnloadSound(milestoneSounds[i]);
+    UnloadMusicStream(music);
     CloseAudioDevice();
     CloseWindow();
     return 0;
