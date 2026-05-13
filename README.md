@@ -46,3 +46,8 @@ g++ main.cpp -o tetris.exe -std=c++11 -I<vcpkg_include> -L<vcpkg_lib> -lraylib -
 - **D** — Move right
 - **X** — Soft drop
 - **R** — Rotate piece
+
+## Leaderboard
+
+Scores are saved locally to `leaderboard.txt` after game over and loaded again
+the next time the game starts. The file is grouped by difficulty.

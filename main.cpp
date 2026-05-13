@@ -54,6 +54,7 @@ char blocks[][4][4] = {{{' ', 'I', ' ', ' '},
 
 int gameState = 0;
 const int MAX_ENTRIES = 10;
+const char *LEADERBOARD_FILE = "leaderboard.txt";
 char playerNames[5][MAX_ENTRIES][32];
 int playerScores[5][MAX_ENTRIES];
 int entryCount[5] = {0, 0, 0, 0, 0};
@@ -74,6 +75,86 @@ float clearTimer = 0;
 int clearingRows[4];
 int clearingRowCount = 0;
 char currentBlock[4][4];
+
+void sortLeaderboard(int d) {
+    for (int i = 0; i < entryCount[d] - 1; i++) {
+        for (int j = 0; j < entryCount[d] - 1 - i; j++) {
+            if (playerScores[d][j] < playerScores[d][j + 1]) {
+                int ts = playerScores[d][j];
+                playerScores[d][j] = playerScores[d][j + 1];
+                playerScores[d][j + 1] = ts;
+
+                char tn[32];
+                strcpy(tn, playerNames[d][j]);
+                strcpy(playerNames[d][j], playerNames[d][j + 1]);
+                strcpy(playerNames[d][j + 1], tn);
+            }
+        }
+    }
+}
+
+void addLeaderboardEntry(int d, const char *name, int savedScore) {
+    if (d < 0 || d >= 5 || name[0] == '\0')
+        return;
+
+    sortLeaderboard(d);
+    if (entryCount[d] >= MAX_ENTRIES &&
+        savedScore <= playerScores[d][MAX_ENTRIES - 1])
+        return;
+
+    int index = entryCount[d];
+    if (index < MAX_ENTRIES)
+        entryCount[d]++;
+    else
+        index = MAX_ENTRIES - 1;
+
+    strncpy(playerNames[d][index], name, sizeof(playerNames[d][index]) - 1);
+    playerNames[d][index][sizeof(playerNames[d][index]) - 1] = '\0';
+    playerScores[d][index] = savedScore;
+    sortLeaderboard(d);
+}
+
+void loadLeaderboard() {
+    FILE *file = fopen(LEADERBOARD_FILE, "r");
+    if (!file)
+        return;
+
+    for (int d = 0; d < 5; d++)
+        entryCount[d] = 0;
+
+    char line[128];
+    while (fgets(line, sizeof(line), file)) {
+        char *p = line;
+        char *end = NULL;
+        int d = (int)strtol(p, &end, 10);
+        if (*end != '\t')
+            continue;
+
+        p = end + 1;
+        int savedScore = (int)strtol(p, &end, 10);
+        if (*end != '\t')
+            continue;
+
+        p = end + 1;
+        p[strcspn(p, "\r\n")] = '\0';
+        addLeaderboardEntry(d, p, savedScore);
+    }
+
+    fclose(file);
+}
+
+void saveLeaderboard() {
+    FILE *file = fopen(LEADERBOARD_FILE, "w");
+    if (!file)
+        return;
+
+    for (int d = 0; d < 5; d++)
+        for (int i = 0; i < entryCount[d]; i++)
+            fprintf(file, "%d\t%d\t%s\n", d, playerScores[d][i],
+                    playerNames[d][i]);
+
+    fclose(file);
+}
 
 void spawnBlock() {
     for (int i = 0; i < 4; i++)
@@ -220,6 +301,7 @@ int main() {
 
     initColors();
     initBoard();
+    loadLeaderboard();
     for (int i = 0; i < 4; i++)
         rand();
     blockType = rand() % 7;
@@ -278,25 +360,8 @@ int main() {
                     gameState = 2;
                     PlayMusicStream(gameMusic);
                 } else if (gameState == 3) {
-                    int d = difficulty;
-                    if (entryCount[d] < MAX_ENTRIES) {
-                        strcpy(playerNames[d][entryCount[d]], currentName);
-                        playerScores[d][entryCount[d]] = pendingScore;
-                        entryCount[d]++;
-                        for (int i = 0; i < entryCount[d] - 1; i++) {
-                            for (int j = 0; j < entryCount[d] - 1 - i; j++) {
-                                if (playerScores[d][j] < playerScores[d][j + 1]) {
-                                    int ts = playerScores[d][j];
-                                    playerScores[d][j] = playerScores[d][j + 1];
-                                    playerScores[d][j + 1] = ts;
-                                    char tn[32];
-                                    strcpy(tn, playerNames[d][j]);
-                                    strcpy(playerNames[d][j], playerNames[d][j + 1]);
-                                    strcpy(playerNames[d][j + 1], tn);
-                                }
-                            }
-                        }
-                    }
+                    addLeaderboardEntry(difficulty, currentName, pendingScore);
+                    saveLeaderboard();
                     gameState = 4;
                 }
             }
