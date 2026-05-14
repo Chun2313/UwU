@@ -357,10 +357,7 @@ int main() {
                 currentName[nameCharCount] = '\0';
             }
             if (IsKeyPressed(KEY_ENTER) && nameCharCount > 0) {
-                if (gameState == 1) {
-                    gameState = 2;
-                    PlayMusicStream(gameMusic);
-                } else if (gameState == 3) {
+                if (gameState == 3) {
                     addLeaderboardEntry(difficulty, currentName, pendingScore);
                     saveLeaderboard();
                     gameState = 4;
@@ -755,28 +752,6 @@ int main() {
         if (gameState == 3) {
             DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.6f));
             const char *prompt = "Game Over! Enter your name:";
-            int pw = MeasureText(prompt, 30);
-            DrawText(prompt, (screenWidth - pw) / 2, 200, 30, RAYWHITE);
-            Rectangle inputBox = {(float)(screenWidth / 2 - 150), 260, 300, 50};
-            DrawRectangleRounded(inputBox, 0.2f, 4,
-                                 (Color){0x4A, 0x6F, 0xE0, 0xAA});
-            DrawRectangleRoundedLines(inputBox, 0.2f, 4,
-                                      (Color){0x6C, 0x8E, 0xF0, 0xFF});
-            int cw = MeasureText(currentName, 28);
-            DrawText(currentName, screenWidth / 2 - cw / 2, 270, 28, RAYWHITE);
-            if ((int)(GetTime() * 2) % 2 == 0) {
-                int cursorX = screenWidth / 2 + cw / 2 + 2;
-                DrawText("|", cursorX, 270, 28, RAYWHITE);
-            }
-            const char *hint = "Press ENTER to confirm, Q to go back";
-            int hw = MeasureText(hint, 16);
-            DrawText(hint, (screenWidth - hw) / 2, 330, 16, GRAY);
-            EndDrawing();
-            continue;
-        }
-
-        if (gameState == 1) {
-            const char *prompt = "Enter your name:";
             int pw = MeasureText(prompt, 30);
             DrawText(prompt, (screenWidth - pw) / 2, 200, 30, RAYWHITE);
             Rectangle inputBox = {(float)(screenWidth / 2 - 150), 260, 300, 50};
