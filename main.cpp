@@ -25,7 +25,7 @@ Color blockColors[7];
 
 char board[H][W] = {};
 char blocks[][4][4] = {{{' ', 'I', ' ', ' '},
-                        {' ', 'I', ' ', 'Buy A Dance of Fire and Ice '},
+                        {' ', 'I', ' ', ' '},
                         {' ', 'I', ' ', ' '},
                         {' ', 'I', ' ', ' '}},
                        {{' ', ' ', ' ', ' '},
