@@ -1,10 +1,10 @@
 #include "raylib.h"
-#include <cmath>
-#include <cstdlib>
-#include <ctime>
-#include <cstring>
-#include <cstdio>
 #include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 using namespace std;
 
@@ -25,7 +25,7 @@ Color blockColors[7];
 
 char board[H][W] = {};
 char blocks[][4][4] = {{{' ', 'I', ' ', ' '},
-                        {' ', 'I', ' ', ' '},
+                        {' ', 'I', ' ', 'Buy A Dance of Fire and Ice '},
                         {' ', 'I', ' ', ' '},
                         {' ', 'I', ' ', ' '}},
                        {{' ', ' ', ' ', ' '},
@@ -70,8 +70,7 @@ float gameTimer = 0;
 float dropTimer = 0;
 float moveSpeed = 0.5f;
 int difficulty = 0;
-int linesClearedTotal = 0;
-const char* diffNames[] = {"Noob", "Pro", "Hacker", "God", "Extredemon"};
+const char *diffNames[] = {"Noob", "Pro", "Hacker", "God", "Extredemon"};
 bool isClearing = false;
 float clearTimer = 0;
 int clearingRows[4];
@@ -332,7 +331,6 @@ int main() {
                                 nameCharCount = 0;
                                 currentName[0] = '\0';
                                 moveSpeed = 0.5f / pow(1.5f, difficulty);
-                                linesClearedTotal = 0;
                             }
                             if (i == 2)
                                 gameState = 4;
@@ -380,7 +378,14 @@ int main() {
         }
 
         if (gameState == 2) {
-            if (IsKeyPressed(KEY_Q)) { gameState = 0; initBoard(); score = 0; gameTimer = 0; PlayMusicStream(menuMusic); StopMusicStream(gameMusic); }
+            if (IsKeyPressed(KEY_Q)) {
+                gameState = 0;
+                initBoard();
+                score = 0;
+                gameTimer = 0;
+                PlayMusicStream(menuMusic);
+                StopMusicStream(gameMusic);
+            }
             if (!isClearing && !isDropping) {
                 if (IsKeyPressed(KEY_A) && canMove(-1, 0))
                     posX--;
@@ -447,7 +452,8 @@ int main() {
                         nextBlockType = rand() % 7;
                         spawnBlock();
                         if (!canMove(0, 0)) {
-                            while (GetCharPressed() > 0);
+                            while (GetCharPressed() > 0)
+                                ;
                             pendingScore = score;
                             gameState = 3;
                             nameCharCount = 0;
@@ -467,7 +473,6 @@ int main() {
                             for (int j = 1; j < W - 1; j++)
                                 board[r][j] = board[r - 1][j];
                     score += clearingRowCount * 100;
-                    linesClearedTotal += clearingRowCount;
                     scorePopupValue = clearingRowCount * 100;
                     scorePopupTimer = 1.5f;
                     if (score > 0 &&
@@ -552,7 +557,8 @@ int main() {
             DrawText("TETRIS", (screenWidth - tw) / 2, 70, 70, RAYWHITE);
             Color titleShadow = Fade(RAYWHITE, 0.15f);
             DrawText("TETRIS", (screenWidth - tw) / 2 + 3, 73, 70, titleShadow);
-            const char *items[] = {"Single Player", "2-Players", "Leaderboard", "Settings"};
+            const char *items[] = {"Single Player", "2-Players", "Leaderboard",
+                                   "Settings"};
             for (int i = 0; i < 4; i++) {
                 float by = 180.0f + i * 90.0f;
                 Rectangle rec = {bx, by, 260, 60};
@@ -578,7 +584,9 @@ int main() {
         }
 
         if (gameState == 4) {
-            DrawText("LEADERBOARD", (screenWidth - MeasureText("LEADERBOARD", 50)) / 2, 40, 50, RAYWHITE);
+            DrawText("LEADERBOARD",
+                     (screenWidth - MeasureText("LEADERBOARD", 50)) / 2, 40, 50,
+                     RAYWHITE);
 
             int tabY = 100;
             int tabW = 110;
@@ -587,23 +595,31 @@ int main() {
             int tabStartX = (screenWidth - totalTabW) / 2;
             for (int d = 0; d < 5; d++) {
                 int tx = tabStartX + d * (tabW + 6);
-                Rectangle tr = {(float)tx, (float)tabY, (float)tabW, (float)tabH};
+                Rectangle tr = {(float)tx, (float)tabY, (float)tabW,
+                                (float)tabH};
                 bool hover = CheckCollisionPointRec(GetMousePosition(), tr);
                 if (hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
                     leaderboardDiff = d;
-                Color tbg = (d == leaderboardDiff) ? (Color){0x4A, 0x6F, 0xE0, 0xFF} : (Color){0x2C, 0x2C, 0x3E, 0xCC};
-                Color tbrd = (d == leaderboardDiff) ? (Color){0x6C, 0x8E, 0xF0, 0xFF} : (Color){0x4A, 0x4A, 0x5E, 0xAA};
+                Color tbg = (d == leaderboardDiff)
+                                ? (Color){0x4A, 0x6F, 0xE0, 0xFF}
+                                : (Color){0x2C, 0x2C, 0x3E, 0xCC};
+                Color tbrd = (d == leaderboardDiff)
+                                 ? (Color){0x6C, 0x8E, 0xF0, 0xFF}
+                                 : (Color){0x4A, 0x4A, 0x5E, 0xAA};
                 DrawRectangleRounded(tr, 0.3f, 4, tbg);
                 DrawRectangleRoundedLines(tr, 0.3f, 4, tbrd);
                 int dtw = MeasureText(diffNames[d], 16);
-                DrawText(diffNames[d], tx + (tabW - dtw) / 2, tabY + 7, 16, RAYWHITE);
+                DrawText(diffNames[d], tx + (tabW - dtw) / 2, tabY + 7, 16,
+                         RAYWHITE);
             }
 
             int startY = 150;
             int nameX = screenWidth / 2 - 60;
             int ec = entryCount[leaderboardDiff];
             for (int i = 0; i < ec && i < 10; i++) {
-                Color c = (i == 0) ? GOLD : ((i == 1) ? LIGHTGRAY : ((i == 2) ? ORANGE : GRAY));
+                Color c = (i == 0) ? GOLD
+                                   : ((i == 1) ? LIGHTGRAY
+                                               : ((i == 2) ? ORANGE : GRAY));
                 int y = startY + i * 40;
                 int rankX = screenWidth / 2 - 180;
                 if (i == 0) {
@@ -621,58 +637,72 @@ int main() {
                     DrawText(rankStr, rankX, y, 24, c);
                 }
                 char line[64];
-                snprintf(line, sizeof(line), "%s - %d", playerNames[leaderboardDiff][i], playerScores[leaderboardDiff][i]);
+                snprintf(line, sizeof(line), "%s - %d",
+                         playerNames[leaderboardDiff][i],
+                         playerScores[leaderboardDiff][i]);
                 DrawText(line, nameX, y, 24, c);
             }
             if (ec == 0) {
                 int lw = MeasureText("No scores yet!", 24);
-                DrawText("No scores yet!", (screenWidth - lw) / 2, startY, 24, GRAY);
+                DrawText("No scores yet!", (screenWidth - lw) / 2, startY, 24,
+                         GRAY);
             }
             if (IsKeyPressed(KEY_Q)) {
                 gameState = 0;
                 PlayMusicStream(menuMusic);
             }
-            const char* hint2 = "Press Q to return to menu";
+            const char *hint2 = "Press Q to return to menu";
             int hw2 = MeasureText(hint2, 16);
-            DrawText(hint2, (screenWidth - hw2) / 2, startY + 10 * 40 + 20, 16, GRAY);
+            DrawText(hint2, (screenWidth - hw2) / 2, startY + 10 * 40 + 20, 16,
+                     GRAY);
             EndDrawing();
             continue;
         }
 
         if (gameState == 5) {
-            DrawText("SETTINGS", (screenWidth - MeasureText("SETTINGS", 50)) / 2, 50, 50, RAYWHITE);
+            DrawText("SETTINGS",
+                     (screenWidth - MeasureText("SETTINGS", 50)) / 2, 50, 50,
+                     RAYWHITE);
 
             int sliderY = 200;
             int sliderW = 300;
             int sliderH = 12;
             int sliderX = (screenWidth - sliderW) / 2;
 
-            Rectangle track = {(float)sliderX, (float)sliderY, (float)sliderW, (float)sliderH};
+            Rectangle track = {(float)sliderX, (float)sliderY, (float)sliderW,
+                               (float)sliderH};
             Vector2 mp = GetMousePosition();
             bool onSlider = CheckCollisionPointRec(mp, track);
             if (onSlider && IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
                 masterVolume = (mp.x - sliderX) / sliderW;
-                if (masterVolume < 0) masterVolume = 0;
-                if (masterVolume > 1) masterVolume = 1;
+                if (masterVolume < 0)
+                    masterVolume = 0;
+                if (masterVolume > 1)
+                    masterVolume = 1;
                 SetMusicVolume(menuMusic, masterVolume);
                 SetMusicVolume(gameMusic, baseMusicVol * masterVolume);
                 for (int i = 0; i < 5; i++)
-                    SetSoundVolume(milestoneSounds[i], baseSoundVol * masterVolume);
+                    SetSoundVolume(milestoneSounds[i],
+                                   baseSoundVol * masterVolume);
             }
 
-            DrawRectangleRounded(track, 0.3f, 4, (Color){0x4A, 0x4A, 0x5E, 0xAA});
+            DrawRectangleRounded(track, 0.3f, 4,
+                                 (Color){0x4A, 0x4A, 0x5E, 0xAA});
             float fillW = masterVolume * sliderW;
             if (fillW > 0) {
-                Rectangle fill = {(float)sliderX, (float)sliderY, fillW, (float)sliderH};
-                DrawRectangleRounded(fill, 0.3f, 4, (Color){0x4A, 0x6F, 0xE0, 0xFF});
+                Rectangle fill = {(float)sliderX, (float)sliderY, fillW,
+                                  (float)sliderH};
+                DrawRectangleRounded(fill, 0.3f, 4,
+                                     (Color){0x4A, 0x6F, 0xE0, 0xFF});
             }
 
             int knobX = sliderX + (int)(masterVolume * sliderW);
             DrawCircle(knobX, sliderY + sliderH / 2, 10, RAYWHITE);
 
-            const char* volLabel = "Volume";
+            const char *volLabel = "Volume";
             int vlw = MeasureText(volLabel, 20);
-            DrawText(volLabel, (screenWidth - vlw) / 2, sliderY - 40, 20, RAYWHITE);
+            DrawText(volLabel, (screenWidth - vlw) / 2, sliderY - 40, 20,
+                     RAYWHITE);
 
             char volPct[8];
             snprintf(volPct, sizeof(volPct), "%d%%", (int)(masterVolume * 100));
@@ -680,34 +710,42 @@ int main() {
             DrawText(volPct, (screenWidth - vpw) / 2, sliderY + 30, 16, GRAY);
 
             int diffY = 300;
-            DrawText("Difficulty", (screenWidth - MeasureText("Difficulty", 20)) / 2, diffY - 30, 20, RAYWHITE);
+            DrawText("Difficulty",
+                     (screenWidth - MeasureText("Difficulty", 20)) / 2,
+                     diffY - 30, 20, RAYWHITE);
             int diffBtnW = 110;
             int diffBtnH = 35;
             int totalW = 5 * diffBtnW + 4 * 8;
             int diffStartX = (screenWidth - totalW) / 2;
             for (int d = 0; d < 5; d++) {
                 int dx = diffStartX + d * (diffBtnW + 8);
-                Rectangle dr = {(float)dx, (float)diffY, (float)diffBtnW, (float)diffBtnH};
+                Rectangle dr = {(float)dx, (float)diffY, (float)diffBtnW,
+                                (float)diffBtnH};
                 bool hover = CheckCollisionPointRec(GetMousePosition(), dr);
                 if (hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
                     difficulty = d;
-                Color dbg = (d == difficulty) ? (Color){0x4A, 0x6F, 0xE0, 0xFF} : (Color){0x2C, 0x2C, 0x3E, 0xCC};
-                Color dbrd = (d == difficulty) ? (Color){0x6C, 0x8E, 0xF0, 0xFF} : (Color){0x4A, 0x4A, 0x5E, 0xAA};
+                Color dbg = (d == difficulty) ? (Color){0x4A, 0x6F, 0xE0, 0xFF}
+                                              : (Color){0x2C, 0x2C, 0x3E, 0xCC};
+                Color dbrd = (d == difficulty)
+                                 ? (Color){0x6C, 0x8E, 0xF0, 0xFF}
+                                 : (Color){0x4A, 0x4A, 0x5E, 0xAA};
                 DrawRectangleRounded(dr, 0.3f, 4, dbg);
                 DrawRectangleRoundedLines(dr, 0.3f, 4, dbrd);
                 int dtw = MeasureText(diffNames[d], 16);
-                DrawText(diffNames[d], dx + (diffBtnW - dtw) / 2, diffY + 9, 16, RAYWHITE);
+                DrawText(diffNames[d], dx + (diffBtnW - dtw) / 2, diffY + 9, 16,
+                         RAYWHITE);
             }
 
-            const char* credit = "This game made by Thinh, Minh, Son";
+            const char *credit = "This game made by Thinh, Minh, Son";
             int cw = MeasureText(credit, 14);
-            DrawText(credit, (screenWidth - cw) / 2, 430, 14, (Color){0x88, 0x88, 0xAA, 0xFF});
+            DrawText(credit, (screenWidth - cw) / 2, 430, 14,
+                     (Color){0x88, 0x88, 0xAA, 0xFF});
 
             if (IsKeyPressed(KEY_Q)) {
                 gameState = 0;
                 PlayMusicStream(menuMusic);
             }
-            const char* hint2 = "Press Q to return to menu";
+            const char *hint2 = "Press Q to return to menu";
             int hw2 = MeasureText(hint2, 16);
             DrawText(hint2, (screenWidth - hw2) / 2, 500, 16, GRAY);
             EndDrawing();
@@ -716,19 +754,21 @@ int main() {
 
         if (gameState == 3) {
             DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.6f));
-            const char* prompt = "Game Over! Enter your name:";
+            const char *prompt = "Game Over! Enter your name:";
             int pw = MeasureText(prompt, 30);
             DrawText(prompt, (screenWidth - pw) / 2, 200, 30, RAYWHITE);
             Rectangle inputBox = {(float)(screenWidth / 2 - 150), 260, 300, 50};
-            DrawRectangleRounded(inputBox, 0.2f, 4, (Color){0x4A, 0x6F, 0xE0, 0xAA});
-            DrawRectangleRoundedLines(inputBox, 0.2f, 4, (Color){0x6C, 0x8E, 0xF0, 0xFF});
+            DrawRectangleRounded(inputBox, 0.2f, 4,
+                                 (Color){0x4A, 0x6F, 0xE0, 0xAA});
+            DrawRectangleRoundedLines(inputBox, 0.2f, 4,
+                                      (Color){0x6C, 0x8E, 0xF0, 0xFF});
             int cw = MeasureText(currentName, 28);
             DrawText(currentName, screenWidth / 2 - cw / 2, 270, 28, RAYWHITE);
             if ((int)(GetTime() * 2) % 2 == 0) {
                 int cursorX = screenWidth / 2 + cw / 2 + 2;
                 DrawText("|", cursorX, 270, 28, RAYWHITE);
             }
-            const char* hint = "Press ENTER to confirm, Q to go back";
+            const char *hint = "Press ENTER to confirm, Q to go back";
             int hw = MeasureText(hint, 16);
             DrawText(hint, (screenWidth - hw) / 2, 330, 16, GRAY);
             EndDrawing();
@@ -736,19 +776,21 @@ int main() {
         }
 
         if (gameState == 1) {
-            const char* prompt = "Enter your name:";
+            const char *prompt = "Enter your name:";
             int pw = MeasureText(prompt, 30);
             DrawText(prompt, (screenWidth - pw) / 2, 200, 30, RAYWHITE);
             Rectangle inputBox = {(float)(screenWidth / 2 - 150), 260, 300, 50};
-            DrawRectangleRounded(inputBox, 0.2f, 4, (Color){0x4A, 0x6F, 0xE0, 0xAA});
-            DrawRectangleRoundedLines(inputBox, 0.2f, 4, (Color){0x6C, 0x8E, 0xF0, 0xFF});
+            DrawRectangleRounded(inputBox, 0.2f, 4,
+                                 (Color){0x4A, 0x6F, 0xE0, 0xAA});
+            DrawRectangleRoundedLines(inputBox, 0.2f, 4,
+                                      (Color){0x6C, 0x8E, 0xF0, 0xFF});
             int cw = MeasureText(currentName, 28);
             DrawText(currentName, screenWidth / 2 - cw / 2, 270, 28, RAYWHITE);
             if ((int)(GetTime() * 2) % 2 == 0) {
                 int cursorX = screenWidth / 2 + cw / 2 + 2;
                 DrawText("|", cursorX, 270, 28, RAYWHITE);
             }
-            const char* hint = "Press ENTER to confirm, Q to go back";
+            const char *hint = "Press ENTER to confirm, Q to go back";
             int hw = MeasureText(hint, 16);
             DrawText(hint, (screenWidth - hw) / 2, 330, 16, GRAY);
             EndDrawing();
